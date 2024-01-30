@@ -31,28 +31,39 @@ export default function Terms() {
 
 			<h1 className="text-lg p-4"><b>Privacy Policy</b></h1>
 
-				1. **Information Collected:**
+			<ul className="list-decimal">
+				<li>
+				<b>Information Collected: </b>
 				We collect limited personal information necessary to provide our services, such as account information, financial transactions, and other relevant details.
-
-				2. **Use of Information:**
+				</li>
+				<li>
+				<b>Use of Information: </b> 
 				The information collected is used solely to provide ClearCash services. We do not share your information with third parties without your consent, except as required by law.
-
-				3. **Security:**
+				</li>
+				<li>
+				<b>Security: </b>
 				We implement security measures to protect your information. However, please note that no system is entirely fail-proof.
-
-				4. **Cookies and Similar Technologies:**
+				</li>
+				<li>
+				<b>Cookies and Similar Technologies: </b>
 				We may use cookies and similar technologies to enhance the user experience and collect information for analysis.
-
-				5. **Changes to the Privacy Policy:**
+				</li>
+				<li>
+				<b>Changes to the Privacy Policy:</b>
 				We reserve the right to modify this Privacy Policy at any time. Significant changes will be communicated through the app or other appropriate means.
+				</li>
+			</ul>
+			<br />
 
-				By using ClearCash, you agree to this Privacy Policy and the processing of your information as described herein.
 
-				If you have any questions or concerns, please contact us at [support email].
 
-				Effective Date: 30/01/2024
 
-				Last Updated: 15/03/2024
+				<p className="font-bold">By using ClearCash, you agree to this Privacy Policy and the processing of your information as described herein.</p>
+				<p className="font-bold">If you have any questions or concerns, please contact us at suporte@clearcash.com.</p>
+
+			<br />
+				<p>Effective Date: 30/01/2024</p>
+				<p>Last Updated: 15/03/2024</p>
 		</main>
 	)
 }
