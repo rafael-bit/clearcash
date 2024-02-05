@@ -1,20 +1,63 @@
-import Link from "next/link";
+"use client"
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 export default function Login() {
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const data = {
+      email: formData.get('email'),
+      password: formData.get('password'),
+    };
+
+    try {
+      const response = await fetch('http://localhost:8080/api/services', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Invalid credentials. Please try again.');
+      }
+
+      const responseData = await response.json();
+      setFeedback('Login successful!');
+    } catch (error: any) {
+      setFeedback(error.message);
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setFeedback(null);
+    }, 5000);
+
+    return () => clearTimeout(timeoutId);
+  }, [feedback]);
+
   return (
     <main>
       <section className="bg-gray-50 dark:bg-gray-900">
         <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-          <a href="#" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-            <img className="w-8 h-8 mr-2" src="/icon-init.png" alt="logo" />
-            ClearCash
-          </a>
+          <Link href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
+              <img className="w-8 h-8 mr-2" src="/icon-init.png" alt="logo" />
+              ClearCash
+          </Link>
           <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
             <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
               <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
                 Sign in to your account
               </h1>
-              <form className="space-y-4 md:space-y-6" action="#">
+              <form onSubmit={handleLogin} className="space-y-4 md:space-y-6">
                 <div>
                   <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email</label>
                   <input
@@ -48,7 +91,11 @@ export default function Login() {
                       />
                     </div>
                     <div className="ml-3 text-sm">
-                      <label htmlFor="remember" className="text-gray-500 dark:text-gray-300">Remember me</label>
+                      <label
+                        htmlFor="remember"
+                        className="text-gray-500 dark:text-gray-300">
+                        Remember
+                      </label>
                     </div>
                   </div>
                   <a href="#" className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">Forgot password?</a>
@@ -59,6 +106,11 @@ export default function Login() {
                 >
                   Sign in
                 </button>
+                {feedback && (
+                  <div className={`fixed top-0 p-4 mb-4 text-sm ${feedback.includes('success') ? 'text-green-800 bg-green-50 dark:text-green-400 dark:bg-gray-800' : 'text-red-800 bg-red-50 dark:text-red-400 dark:bg-gray-800'}`} role="alert">
+                    <span className="font-medium">{feedback.includes('success') ? 'Success' : 'Error'}</span> {feedback}
+                  </div>
+                )}
                 <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                   Don’t have an account yet? <Link href="/signup" className="font-medium text-primary-600 hover:underline dark:text-primary-500">Sign up</Link>
                 </p>
@@ -66,7 +118,7 @@ export default function Login() {
             </div>
           </div>
         </div>
-      </section>  
+      </section>
     </main>
   );
 }
