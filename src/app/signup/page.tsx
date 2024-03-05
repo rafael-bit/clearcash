@@ -22,10 +22,11 @@ export default function Signup() {
 			name: formData.get('name'),
 			email: formData.get('email'),
 			password,
+			confirmPassword
 		};
 
 		try {
-			const response = await fetch('http://localhost:8080/api/services', {
+			const response = await fetch('http://localhost:8080/auth/register', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',

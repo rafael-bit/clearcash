@@ -16,7 +16,7 @@ export default function Login() {
     };
 
     try {
-      const response = await fetch('http://localhost:8080/api/services/login', {
+      const response = await fetch('http://localhost:8080/auth/login/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -24,13 +24,12 @@ export default function Login() {
         body: JSON.stringify(data),
       });
 
+      const responseData = await response.json();
+
       if (response.status === 200) {
-        const { token } = await response.json();
-        localStorage.setItem('token', token);
         setFeedback('Login successful!');
-        window.location.href = '/home';
-      } else if (response.status === 401) {
-        setFeedback('Invalid password!!');
+        const userId = responseData.id
+        window.location.href = `/home/${userId}`
       } else if (response.status === 404) {
         setFeedback('User not found. Please check your credentials.');
       } else {
@@ -52,7 +51,7 @@ export default function Login() {
 
   return (
     <main>
-      <section className="h-100 bg-gray-50 dark:bg-gray-900">
+      <section className="bg-gray-50 dark:bg-gray-900">
         <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
           <Link href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
             <img className="w-8 h-8 mr-2" src="/icon-init.png" alt="logo" />
@@ -104,7 +103,7 @@ export default function Login() {
                       </label>
                     </div>
                   </div>
-                  <a href="#" className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">Forgot password?</a>
+                  <Link href="#" className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">Forgot password?</Link>
                 </div>
                 <button
                   type="submit"
