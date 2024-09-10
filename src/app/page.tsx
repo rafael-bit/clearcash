@@ -1,22 +1,24 @@
-"use client"
+"use client";
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function Login() {
   const [feedback, setFeedback] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
     const data = {
-      email: formData.get('email'),
-      password: formData.get('password'),
+      email: formData.get('email') as string,
+      password: formData.get('password') as string,
     };
 
     try {
-      const response = await fetch('http://localhost:8080/auth/login/', {
+      const response = await fetch('http://localhost:8080/api/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -26,12 +28,20 @@ export default function Login() {
 
       const responseData = await response.json();
 
-      if (response.status === 200) {
+      if (response.ok) {
         setFeedback('Login successful!');
-        const userId = responseData.id
-        window.location.href = `/home/${userId}`
-      } else if (response.status === 404) {
-        setFeedback('User not found. Please check your credentials.');
+        const userId = responseData.id; // Aqui estamos pegando o id da resposta
+        if (userId) {
+          setTimeout(() => {
+            router.push(`/home/${userId}`);
+          }, 1000);
+        } else {
+          setFeedback('User ID is missing in the response.');
+        }
+      } else if (response.status === 400) {
+        setFeedback('Invalid credentials. Please check your email and password.');
+      } else if (response.status === 401) {
+        setFeedback('Incorrect password. Please try again.');
       } else {
         setFeedback(`Unknown error: ${response.status}`);
       }
@@ -64,7 +74,9 @@ export default function Login() {
               </h1>
               <form onSubmit={handleLogin} className="space-y-4 md:space-y-6">
                 <div>
-                  <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email</label>
+                  <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    Your email
+                  </label>
                   <input
                     type="email"
                     name="email"
@@ -75,7 +87,9 @@ export default function Login() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Password</label>
+                  <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    Password
+                  </label>
                   <input
                     type="password"
                     name="password"
@@ -98,26 +112,32 @@ export default function Login() {
                     <div className="ml-3 text-sm">
                       <label
                         htmlFor="remember"
-                        className="text-gray-500 dark:text-gray-300">
+                        className="text-gray-500 dark:text-gray-300"
+                      >
                         Remember
                       </label>
                     </div>
                   </div>
-                  <Link href="#" className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">Forgot password?</Link>
+                  <Link href="#" className="text-sm font-medium text-primary-600 hover:underline dark:text-white">
+                    Forgot password?
+                  </Link>
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-primary-600 hover:bg-primary-700 focus:ring-4 font-medium rounded-lg text-md px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 border"
+                  className="w-full bg-primary-600 hover:bg-primary-700 focus:ring-4 font-medium rounded-lg text-md px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 border dark:text-white"
                 >
                   Sign in
                 </button>
                 {feedback && (
-                  <div className={`fixed top-0 p-4 mb-4 text-sm ${feedback.includes('success') ? 'text-green-800 bg-green-50 dark:text-green-400 dark:bg-gray-800' : 'text-red-800 bg-red-50 dark:text-red-400 dark:bg-gray-800'}`} role="alert">
-                    <span className="font-medium">{feedback.includes('success') ? 'Success' : 'Error'}</span> {feedback}
+                  <div className={`fixed top-0 p-4 mb-4 text-sm ${feedback.includes('successful') ? 'text-green-800 bg-green-50 dark:text-green-400 dark:bg-gray-800' : 'text-red-800 bg-red-50 dark:text-red-400 dark:bg-gray-800'}`} role="alert">
+                    <span className="font-medium">{feedback.includes('successful') ? 'Success' : 'Error'}</span> {feedback}
                   </div>
                 )}
                 <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                  Don’t have an account yet? <Link href="/signup" className="font-medium text-primary-600 hover:underline dark:text-primary-500">Sign up</Link>
+                  Don’t have an account yet?{' '}
+                  <Link href="/signup" className="font-medium text-primary-600 hover:underline dark:text-primary-500">
+                    Sign up
+                  </Link>
                 </p>
               </form>
             </div>

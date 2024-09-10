@@ -62,8 +62,8 @@ export default function Terms() {
 				<p className="font-bold">If you have any questions or concerns, please contact us at suporte@clearcash.com.</p>
 
 			<br />
-				<p>Effective Date: 30/01/2024</p>
-				<p>Last Updated: 15/03/2024</p>
+				<p>Effective Date: 08/31/2024</p>
+				<p>Last Updated: 09/09/2024</p>
 		</main>
 	)
 }
