@@ -1,0 +1,40 @@
+<main>
+			<h1>Welcome, {user.name}</h1>
+			<p>Email: {user.email}</p>
+			{user.img && <img src={user.img} alt={user.name} />}
+		</main>
+
+		
+				<div className="grid grid-cols-2 gap-4 mb-4">
+					<div
+						className="border-2 border-dashed rounded-lg border-gray-300 dark:border-gray-600 h-48 md:h-72"
+					></div>
+					<div
+						className="border-2 border-dashed rounded-lg border-gray-300 dark:border-gray-600 h-48 md:h-72"
+					></div>
+				</div>
+				<div
+					className="border-2 border-dashed rounded-lg border-gray-300 dark:border-gray-600 h-96 mb-4"
+				></div>
+
+
+
+				export default function NavBar({ user }: NavBarProps) {
+  return (
+    <nav className="bg-blue-500 p-4">
+      <div className="flex items-center space-x-4">
+        {user.img && (
+          <img
+            src={user.img}
+            alt="User Avatar"
+            className="w-10 h-10 rounded-full"
+          />
+        )}
+        <div>
+          <p className="text-white font-bold">{user.name}</p>
+          <p className="text-white text-sm">{user.email}</p>
+        </div>
+      </div>
+    </nav>
+  );
+}

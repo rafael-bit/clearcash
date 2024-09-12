@@ -1,9 +1,8 @@
-// src/app/home/[id]/page.tsx
-
 "use client";
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import NavBar from '@/app/components/NavBar';
 
 interface User {
 	_id: string;
@@ -12,8 +11,8 @@ interface User {
 	img?: string;
 }
 
-const UserPage = () => {
-	const { id } = useParams(); // Use useParams para obter os parâmetros da URL
+export default function Home() {
+	const { id } = useParams();
 	const [user, setUser] = useState<User | null>(null);
 	const [loading, setLoading] = useState(true);
 
@@ -46,12 +45,28 @@ const UserPage = () => {
 	}
 
 	return (
-		<main>
-			<h1>Welcome, {user.name}</h1>
-			<p>Email: {user.email}</p>
-			{user.img && <img src={user.img} alt={user.name} />}
-		</main>
-	);
-};
+		<div className="antialiased bg-gray-50 dark:bg-gray-900">
+			<NavBar user={user} />
 
-export default UserPage;
+			<main className="p-4 md:ml-64 h-auto pt-20">
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+					<div
+						className="border-2 border-dashed border-gray-300 rounded-lg dark:border-gray-600 h-32 md:h-64"
+					></div>
+					<div
+						className="border-2 border-dashed rounded-lg border-gray-300 dark:border-gray-600 h-32 md:h-64"
+					></div>
+					<div
+						className="border-2 border-dashed rounded-lg border-gray-300 dark:border-gray-600 h-32 md:h-64"
+					></div>
+					<div
+						className="border-2 border-dashed rounded-lg border-gray-300 dark:border-gray-600 h-32 md:h-64"
+					></div>
+				</div>
+				<div
+					className="border-2 border-dashed rounded-lg border-gray-300 dark:border-gray-600 h-96 mb-4"
+				></div>
+			</main>
+		</div>
+	);
+}
