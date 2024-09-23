@@ -3,10 +3,6 @@ import { useState } from "react";
 export default function Aside() {
 	const [isOpen, setIsOpen] = useState(false);
 
-	const toggleAside = () => {
-		setIsOpen(!isOpen);
-	};
-
 	const toggleDropdown = () => {
 		setIsOpen(!isOpen);
 	};
@@ -119,7 +115,6 @@ export default function Aside() {
 							className="flex items-center p-2 w-full text-base font-medium text-gray-900 rounded-lg transition duration-75 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
 							aria-controls="dropdown-authentication"
 							data-collapse-toggle="dropdown-authentication"
-							onClick={toggleDropdown}
 						>
 							<svg
 								aria-hidden="true"
@@ -216,7 +211,7 @@ export default function Aside() {
 									clipRule="evenodd"
 								></path>
 							</svg>
-							<span className="ml-3">Help</span>
+							<a href="/help"><span className="ml-3">Help</span></a>
 						</a>
 					</li>
 				</ul>

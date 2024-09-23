@@ -10,16 +10,22 @@ interface NavBarProps {
 }
 
 export default function NavBar({ user }: NavBarProps) {
+	const [isMobileOpen, setIsMobileOpen] = useState(false);
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 	const menuRef = useRef<HTMLDivElement>(null);
 
-	const toggleMenu = () => {
+	const toggleMobile = () => {
 		setIsMobile(!isMobile);
 	};
 
+	const toggleMenu = () => {
+		setIsMenuOpen(!isMenuOpen)
+	}
+
 	const handleClickOutside = (event: MouseEvent) => {
 		if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+			setIsMobileOpen(false);
 			setIsMenuOpen(false);
 		}
 	};
@@ -36,7 +42,7 @@ export default function NavBar({ user }: NavBarProps) {
 	}, []);
 
 	useEffect(() => {
-		if (isMenuOpen) {
+		if (isMenuOpen || isMobileOpen) {
 			document.addEventListener("mousedown", handleClickOutside);
 		} else {
 			document.removeEventListener("mousedown", handleClickOutside);
@@ -44,18 +50,18 @@ export default function NavBar({ user }: NavBarProps) {
 		return () => {
 			document.removeEventListener("mousedown", handleClickOutside);
 		};
-	}, [isMenuOpen]);
+	}, [isMenuOpen, isMobileOpen]);
 
 	return (
 		<>
-			<nav className="bg-white border-b border-gray-200 px-4 py-2.5 dark:bg-gray-800 dark:border-gray-700 fixed left-0 right-0 top-0 z-50">
+			<nav className="z-50 bg-white border-b border-gray-200 px-4 py-2.5 dark:bg-gray-800 dark:border-gray-700 fixed left-0 right-0 top-0 z-50">
 				<div className="flex flex-wrap justify-between items-center">
 					<div className="flex justify-start items-center">
 						<button
 							type="button"
 							aria-controls="drawer-navigation"
 							className="p-2 mr-2 text-gray-600 rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:bg-gray-100 dark:focus:bg-gray-700 focus:ring-2 focus:ring-gray-100 dark:focus:ring-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-							onClick={toggleMenu}
+							onClick={toggleMobile}
 						>
 							<svg
 								aria-hidden="true"
@@ -113,7 +119,7 @@ export default function NavBar({ user }: NavBarProps) {
 							type="button"
 							aria-controls="drawer-navigation"
 							className="p-2 mr-1 text-gray-500 rounded-lg md:hidden hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
-							onClick={toggleMenu}
+							onClick={toggleMobile}
 						>
 							<span className="sr-only">Toggle search</span>
 							<svg aria-hidden="true" className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -141,9 +147,9 @@ export default function NavBar({ user }: NavBarProps) {
 						<div className="flex items-center lg:order-2">
 							<button
 								type="button"
-								className="flex mx-3 text-sm bg-gray-800 rounded-full md:mr-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
+								className="flex mx-3 text-sm dark:bg-gray-800 rounded-full md:mr-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
 								id="user-menu-button"
-								aria-expanded={isMenuOpen}
+								aria-expanded={isMobileOpen}
 								onClick={toggleMenu}
 							>
 								<span className="sr-only">Open user menu</span>
@@ -153,26 +159,27 @@ export default function NavBar({ user }: NavBarProps) {
 									alt="user photo"
 								/>
 							</button>
-
-							{isMenuOpen && isMobile && (
-								<div ref={menuRef} className="absolute top-14 right-0 mt-5 w-48 bg-white rounded-md shadow-lg dark:bg-gray-800 z-50">
+							
+							{isMenuOpen && (
+								<div ref={menuRef} className="absolute top-12 right-4 mt-5 w-48 bg-white rounded-md shadow-lg dark:bg-gray-800 z-50">
 									<div className="flex justify-between items-center py-2 px-4 bg-gray-100 dark:bg-gray-700 rounded-t-md">
 										<span className="text-sm font-semibold text-gray-900 dark:text-white">Menu</span>
-										<button type="button" onClick={() => setIsMenuOpen(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
-											<svg aria-hidden="true" className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-												<path clipRule="evenodd" fillRule="evenodd" d="M4.293 5.293a1 1 0 011.414 0L10 8.586l4.293-3.293a1 1 0 111.414 1.414l-4.293 4.293 4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"></path>
+										<button onClick={toggleMenu} className="text-gray-900 dark:text-white">
+											<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+												<path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
 											</svg>
 										</button>
 									</div>
-									<ul className="py-2 text-sm text-gray-700 dark:text-gray-400">
+									<div className="py-2 px-4 text-sm text-gray-900 dark:text-white">
+										<p>{user.name}</p>
+										<p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
+									</div>
+									<ul className="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="user-menu-button">
 										<li>
-											<a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white">Profile</a>
+											<a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600">Configurações</a>
 										</li>
 										<li>
-											<a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white">Settings</a>
-										</li>
-										<li>
-											<a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-white">Sign out</a>
+											<a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600">Sair</a>
 										</li>
 									</ul>
 								</div>

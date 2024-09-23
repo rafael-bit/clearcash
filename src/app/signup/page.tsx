@@ -33,7 +33,6 @@ export default function Signup() {
 
 			if (!response.ok) {
 				const errorData = await response.json();
-				console.error('Backend error:', errorData);
 				throw new Error(errorData.message || 'Failed to create an account. Please try again.');
 			}
 
