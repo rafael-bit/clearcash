@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import ImageUpload from '../components/ImageUpload';
 
 export default function Signup() {
 	const [feedback, setFeedback] = useState<string | null>(null);
@@ -122,6 +123,7 @@ export default function Signup() {
 											required
 										/>
 									</div>
+										<ImageUpload />
 									<div className="flex items-start">
 										<div className="flex items-center h-5">
 											<input
@@ -132,6 +134,7 @@ export default function Signup() {
 												required
 											/>
 										</div>
+
 										<div className="ml-3 text-sm">
 											<label htmlFor="terms" className="font-light text-gray-500 dark:text-gray-300">
 												I accept the{' '}

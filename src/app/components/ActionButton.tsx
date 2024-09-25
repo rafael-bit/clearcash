@@ -21,6 +21,7 @@ export default function ActionButton({ user, setTransactions }: ActionButtonProp
 	const [modalType, setModalType] = useState<'income' | 'expense' | null>(null);
 	const [amount, setAmount] = useState<number | null>(null);
 	const [description, setDescription] = useState<string>('');
+	const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
 	const [feedback, setFeedback] = useState<string | null>(null);
 	const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -45,6 +46,7 @@ export default function ActionButton({ user, setTransactions }: ActionButtonProp
 		setModalType(null);
 		setAmount(null);
 		setDescription('');
+		setDate(new Date().toISOString().split('T')[0]);
 	};
 
 	const handleSave = async () => {
@@ -58,7 +60,7 @@ export default function ActionButton({ user, setTransactions }: ActionButtonProp
 			userId: user,
 			amount: modalType === 'income' ? amount : -amount,
 			category: modalType === 'income' ? 'Income' : 'Expense',
-			date: new Date().toISOString(),
+			date,
 			description,
 		};
 
@@ -154,6 +156,12 @@ export default function ActionButton({ user, setTransactions }: ActionButtonProp
 							placeholder="Enter description"
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
+							className="w-full p-2 mb-4 border border-gray-300 rounded-lg dark:bg-gray-700 dark:text-white"
+						/>
+						<input
+							type="date"
+							value={date}
+							onChange={(e) => setDate(e.target.value)}
 							className="w-full p-2 mb-4 border border-gray-300 rounded-lg dark:bg-gray-700 dark:text-white"
 						/>
 						<div className="flex justify-end gap-4">
