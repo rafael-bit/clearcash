@@ -104,7 +104,7 @@ export default function ActionButton({ user, setTransactions }: ActionButtonProp
 	}, [isOpen]);
 
 	return (
-		<div className="relative z-50">
+		<div className="relative z-20">
 			<button
 				onClick={toggleMenu}
 				className="fixed bottom-8 right-8 bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 dark:bg-blue-900 dark:hover:bg-blue-800"
@@ -120,7 +120,7 @@ export default function ActionButton({ user, setTransactions }: ActionButtonProp
 					<ul className="list-none p-2">
 						<li>
 							<button
-								className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
+								className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
 								onClick={() => openModal('income')}
 							>
 								<img src="/income.svg" alt="add income" /> Add Income
@@ -128,7 +128,7 @@ export default function ActionButton({ user, setTransactions }: ActionButtonProp
 						</li>
 						<li>
 							<button
-								className="block w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
+								className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
 								onClick={() => openModal('expense')}
 							>
 								<img src="/expense.svg" alt="add expense" /> Add Expense

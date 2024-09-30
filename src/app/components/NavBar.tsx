@@ -3,6 +3,7 @@ import Aside from "./Aside";
 
 interface NavBarProps {
 	user: {
+		_id: string;
 		name: string;
 		email: string;
 		img?: string;
@@ -54,7 +55,7 @@ export default function NavBar({ user }: NavBarProps) {
 
 	return (
 		<>
-			<nav className="z-50 bg-white border-b border-gray-200 px-4 py-2.5 dark:bg-gray-800 dark:border-gray-700 fixed left-0 right-0 top-0 z-50">
+			<nav className="z-30 bg-white border-b border-gray-200 px-4 py-2.5 dark:bg-gray-800 dark:border-gray-700 fixed left-0 right-0 top-0 ">
 				<div className="flex flex-wrap justify-between items-center">
 					<div className="flex justify-start items-center">
 						<button
@@ -87,7 +88,7 @@ export default function NavBar({ user }: NavBarProps) {
 						</a>
 						<form action="#" method="GET" className="hidden md:block md:pl-2">
 							<label htmlFor="topbar-search" className="sr-only">Search</label>
-							<div className="relative md:w-64 md:w-96">
+							<div className="relative md:w-64">
 								<div
 									className="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none"
 								>
@@ -154,12 +155,12 @@ export default function NavBar({ user }: NavBarProps) {
 							>
 								<span className="sr-only">Open user menu</span>
 								<img
-									className="h-8 rounded-full"
+									className="h-10 rounded-full"
 									src={user.img || "/user.png"}
 									alt="user photo"
 								/>
 							</button>
-							
+
 							{isMenuOpen && (
 								<div ref={menuRef} className="absolute top-12 right-4 mt-5 w-48 bg-white rounded-md shadow-lg dark:bg-gray-800 z-50">
 									<div className="flex justify-between items-center py-2 px-4 bg-gray-100 dark:bg-gray-700 rounded-t-md">
@@ -176,10 +177,10 @@ export default function NavBar({ user }: NavBarProps) {
 									</div>
 									<ul className="py-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="user-menu-button">
 										<li>
-											<a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600">Configurações</a>
+											<a href={`/home/${user._id}/config`} className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600">Settings</a>
 										</li>
 										<li>
-											<a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600">Sair</a>
+											<a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600">Out</a>
 										</li>
 									</ul>
 								</div>
@@ -189,7 +190,7 @@ export default function NavBar({ user }: NavBarProps) {
 				</div>
 			</nav>
 
-			{!isMobile && <Aside />}
+			{!isMobile && <Aside user={{ _id: user._id }} />}
 		</>
 	);
 }
