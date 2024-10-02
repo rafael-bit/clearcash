@@ -60,16 +60,16 @@ export default function ProfileSection({ userData, userId, onUpdateUser, onUpdat
 			)}
 			<div className="text-xl font-semibold dark:text-white text-gray-900">
 				<div>
-					<p>Nome:</p>
+					<span className="font-medium text-base">Name:</span>
 					<div className="relative">
 						<input
 							type="text"
 							value={name}
 							onChange={(e) => setName(e.target.value)}
 							readOnly={!isNameEditable}
-							className={`border border-gray-700 rounded p-2 pr-10 w-full mt-1 mb-5 ${isNameEditable ? "bg-gray-200 dark:bg-gray-600" : "bg-gray-300 dark:bg-gray-800"}`}
+							className={`border border-gray-700 rounded p-2 pr-10 w-full mt-1 mb-5 font-light text-base ${isNameEditable ? "bg-gray-200 dark:bg-gray-600" : "bg-gray-300 dark:bg-gray-800 "}`}
 						/>
-						<button className="absolute right-2 top-4" onClick={() => setIsNameEditable(!isNameEditable)}>
+						<button className="absolute right-2 top-3" onClick={() => setIsNameEditable(!isNameEditable)}>
 							<svg
 								className="w-6 h-6 text-gray-500"
 								fill="none"
@@ -84,16 +84,16 @@ export default function ProfileSection({ userData, userId, onUpdateUser, onUpdat
 					</div>
 				</div>
 				<div>
-					<p>Email:</p>
+					<span className="font-medium text-base">Email:</span>
 					<div className="relative">
 						<input
 							type="email"
 							value={email}
 							onChange={(e) => setEmail(e.target.value)}
 							readOnly={!isEmailEditable}
-							className={`border border-gray-700 rounded p-2 pr-10 w-full mt-1 mb-5 ${isEmailEditable ? "bg-gray-200 dark:bg-gray-600" : "bg-gray-300 dark:bg-gray-800"}`}
+							className={`border border-gray-700 rounded p-2 pr-10 w-full mt-1 mb-5 font-light text-base ${isEmailEditable ? "bg-gray-200 dark:bg-gray-600" : "bg-gray-300 dark:bg-gray-800"}`}
 						/>
-						<button className="absolute right-2 top-4" onClick={() => setIsEmailEditable(!isEmailEditable)}>
+						<button className="absolute right-2 top-3" onClick={() => setIsEmailEditable(!isEmailEditable)}>
 							<svg
 								className="w-6 h-6 text-gray-500"
 								fill="none"
@@ -108,7 +108,7 @@ export default function ProfileSection({ userData, userId, onUpdateUser, onUpdat
 					</div>
 				</div>
 				<div>
-					<p>Trocar Senha:</p>
+					<span className="font-medium text-base">Change your password:</span>
 					<div className="relative">
 						<input
 							type="password"
@@ -116,9 +116,9 @@ export default function ProfileSection({ userData, userId, onUpdateUser, onUpdat
 							value={currentPassword}
 							onChange={(e) => setCurrentPassword(e.target.value)}
 							readOnly={!isPasswordEditable}
-							className={`border border-gray-700 rounded p-2 pr-10 w-full mt-1 ${isPasswordEditable ? "bg-gray-200 dark:bg-gray-600" : "bg-gray-300 dark:bg-gray-800"}`}
+							className={`border border-gray-700 rounded p-2 pr-10 w-full mt-1 font-light text-base placeholder:text-gray-900 dark:placeholder:text-gray-100 ${isPasswordEditable ? "bg-gray-200 dark:bg-gray-600" : "bg-gray-300 dark:bg-gray-800"}`}
 						/>
-						<button className="absolute right-2 top-4" onClick={() => setIsPasswordEditable(!isPasswordEditable)}>
+						<button className="absolute right-2 top-3" onClick={() => setIsPasswordEditable(!isPasswordEditable)}>
 							<svg
 								className="w-6 h-6 text-gray-500"
 								fill="none"
@@ -138,7 +138,7 @@ export default function ProfileSection({ userData, userId, onUpdateUser, onUpdat
 							value={newPassword}
 							onChange={(e) => setNewPassword(e.target.value)}
 							readOnly={!isPasswordEditable}
-							className={`border border-gray-700 rounded p-2 pr-10 w-full mt-1 ${isPasswordEditable ? "bg-gray-200 dark:bg-gray-600" : "bg-gray-300 dark:bg-gray-800"}`}
+							className={`border border-gray-700 rounded p-2 pr-10 w-full mt-1 font-light text-base placeholder:text-gray-900 dark:placeholder:text-gray-100 ${isPasswordEditable ? "bg-gray-200 dark:bg-gray-600" : "bg-gray-300 dark:bg-gray-800"}`}
 						/>
 					</div>
 					<div className="relative mt-2">
@@ -148,7 +148,7 @@ export default function ProfileSection({ userData, userId, onUpdateUser, onUpdat
 							value={confirmPassword}
 							onChange={(e) => setConfirmPassword(e.target.value)}
 							readOnly={!isPasswordEditable}
-							className={`border border-gray-700 rounded p-2 pr-10 w-full mt-1 mb-5 ${isPasswordEditable ? "bg-gray-200 dark:bg-gray-600" : "bg-gray-300 dark:bg-gray-800"}`}
+							className={`border border-gray-700 rounded p-2 pr-10 w-full mt-1 mb-5 font-light text-base placeholder:text-gray-900 dark:placeholder:text-gray-100 ${isPasswordEditable ? "bg-gray-200 dark:bg-gray-600" : "bg-gray-300 dark:bg-gray-800"}`}
 						/>
 					</div>
 				</div>
