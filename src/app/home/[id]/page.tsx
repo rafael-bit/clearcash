@@ -121,7 +121,7 @@ export default function Home() {
 							Income
 							<img src="/income.svg" alt="income logo" />
 						</h1>
-						<p className="text-center text-5xl leading-10 mt-4 md:mt-14 text-gray-600 dark:text-gray-200">
+						<p className="text-center text-3xl lg:text-4xl leading-10 mt-4 md:mt-14 text-gray-600 dark:text-gray-200">
 							$ {calculateIncome().toFixed(2)}
 						</p>
 					</div>
@@ -131,7 +131,7 @@ export default function Home() {
 							Expense
 							<img src="/expense.svg" alt="expense logo" />
 						</h1>
-						<p className="text-center text-5xl leading-10 mt-4 md:mt-14 text-gray-600 dark:text-gray-200">
+						<p className="text-center text-3xl lg:text-4xl leading-10 mt-4 md:mt-14 text-gray-600 dark:text-gray-200">
 							$ {Math.abs(calculateExpenses()).toFixed(2)}
 						</p>
 					</div>
@@ -141,7 +141,7 @@ export default function Home() {
 							Balance
 							<img src="/balance.png" alt="balance logo" className="w-10" />
 						</h1>
-						<p className="text-center text-5xl leading-10 mt-4 md:mt-14 text-gray-600 dark:text-gray-200">
+						<p className="text-center text-3xl lg:text-4xl leading-10 mt-4 md:mt-14 text-gray-600 dark:text-gray-200">
 							$ {calculateBalance().toFixed(2)}
 						</p>
 					</div>

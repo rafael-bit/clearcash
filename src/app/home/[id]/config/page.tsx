@@ -39,8 +39,31 @@ const updateUserData = async (userId: string, data: { name: string; email: strin
 	}
 };
 
+const updatePassword = async (userId: string, newPassword: string) => {
+	try {
+		const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ password: newPassword }),
+		});
+
+		if (!response.ok) {
+			throw new Error("Erro ao atualizar a senha");
+		}
+
+		const result = await response.json();
+		console.log("Senha atualizada com sucesso:", result);
+		return result;
+	} catch (error) {
+		console.error("Erro ao atualizar senha:", error);
+	}
+};
+
 export default function Configuration() {
-	const { id: userId } = useParams();
+	const { id } = useParams<{ id: string }>();
+	const userId = Array.isArray(id) ? id[0] : id;
 	const [userData, setUserData] = useState<any>(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const asideRef = useRef<HTMLDivElement>(null);
@@ -78,6 +101,13 @@ export default function Configuration() {
 			setUserData(updatedUser);
 		}
 	};
+
+	const handleUpdatePassword = async (newPassword: string) => {
+		if (userId) {
+			await updatePassword(userId, newPassword);
+		}
+	};
+
 
 	return (
 		<div className="sm:flex antialiased bg-gray-50 dark:bg-gray-900">
@@ -217,11 +247,12 @@ export default function Configuration() {
 				<div id="profile" className="flex flex-col items-center">
 					{userData && (
 						<>
-							<PhotoSelector user={userData} userId={userId as string} />
+							<PhotoSelector user={userData} userId={userId} />
 							<ProfileSection
 								userData={userData}
 								userId={userId}
 								onUpdateUser={handleUpdateUser}
+								onUpdatePassword={handleUpdatePassword}
 							/>
 						</>
 					)}

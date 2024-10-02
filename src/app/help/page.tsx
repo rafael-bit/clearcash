@@ -37,13 +37,13 @@ export default function Help() {
 				<p>ClearCash allows you to easily manage your financial transactions:</p>
 				<ol className="list-decimal pl-6">
 					<li>
-						<b>Add Transactions:</b> Click on the "Add Transaction" button to input your income or expenses. Fill in the necessary details, such as amount, category, and date.
+						<b>Add Transactions:</b> Click on the &quot;Add Transaction&quot; button to input your income or expenses. Fill in the necessary details, such as amount, category, and date.
 					</li>
 					<li>
 						<b>Edit Transactions:</b> You can edit any existing transaction by selecting it from your transaction list and making the necessary changes.
 					</li>
 					<li>
-						<b>Delete Transactions:</b> To remove a transaction, select it and click the "Delete" button.
+						<b>Delete Transactions:</b> To remove a transaction, select it and click the &quot;Delete&quot; button.
 					</li>
 				</ol>
 
@@ -66,7 +66,7 @@ export default function Help() {
 				<p>Here are some frequently asked questions:</p>
 				<ul className="list-disc pl-6">
 					<li>
-						<b>What if I forget my password?</b> You can reset your password by clicking on the "Forgot Password?" link on the login page.
+						<b>What if I forget my password?</b> You can reset your password by clicking on the &quot;Forgot Password?&quot; link on the login page.
 					</li>
 					<li>
 						<b>How can I contact support?</b> You can reach out to our support team at suporte@clearcash.com for any inquiries.

@@ -8,7 +8,7 @@ interface ProfileSectionProps {
 	onUpdatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
-export default function ProfileSection({ userData, userId, onUpdateUser, onUpdatePassword }: ProfileSectionProps) {
+export default function ProfileSection({ userData, onUpdateUser, onUpdatePassword }: ProfileSectionProps) {
 	const [name, setName] = useState(userData.name);
 	const [email, setEmail] = useState(userData.email);
 	const [currentPassword, setCurrentPassword] = useState("");
