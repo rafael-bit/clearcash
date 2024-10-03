@@ -10,21 +10,38 @@ const FontContext = createContext({
 });
 
 export function FontProvider({ children }: { children: React.ReactNode }) {
-	const [font, setFont] = useState(() => {
-		return localStorage.getItem('selectedFont') || 'font-sans';
-	});
+	// Inicializar como `null` e definir depois de pegar o valor
+	const [font, setFont] = useState<string | null>(null);
+	const [fontSize, setFontSize] = useState<string | null>(null);
 
-	const [fontSize, setFontSize] = useState(() => {
-		return localStorage.getItem('fontSize') || 'text-base';
-	});
-
+	// useEffect para carregar dados do localStorage
 	useEffect(() => {
-		localStorage.setItem('selectedFont', font);
+		if (typeof window !== 'undefined') {
+			const storedFont = localStorage.getItem('selectedFont') || 'font-sans';
+			const storedFontSize = localStorage.getItem('fontSize') || 'text-base';
+			setFont(storedFont);
+			setFontSize(storedFontSize);
+		}
+	}, []);
+
+	// Atualiza localStorage quando `font` mudar
+	useEffect(() => {
+		if (font !== null) {
+			localStorage.setItem('selectedFont', font);
+		}
 	}, [font]);
 
+	// Atualiza localStorage quando `fontSize` mudar
 	useEffect(() => {
-		localStorage.setItem('fontSize', fontSize);
+		if (fontSize !== null) {
+			localStorage.setItem('fontSize', fontSize);
+		}
 	}, [fontSize]);
+
+	if (font === null || fontSize === null) {
+		// Retorna null ou um loader enquanto o estado não foi inicializado
+		return null;
+	}
 
 	return (
 		<FontContext.Provider value={{ font, setFont, fontSize, setFontSize }}>
