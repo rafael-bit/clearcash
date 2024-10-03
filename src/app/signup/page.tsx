@@ -57,7 +57,7 @@ export default function Signup() {
 
 	return (
 		<main>
-			<div className="w-full h-full z-50 shadow">
+			<div className="w-full h-screen z-50 shadow">
 				<section className="py-5 bg-gray-50 dark:bg-gray-900">
 					<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto lg:py-0">
 						<Link href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
@@ -155,7 +155,7 @@ export default function Signup() {
 									)}
 									<p className="text-sm font-light text-gray-500 dark:text-gray-400">
 										Already have an account?{' '}
-										<Link href="/login" className="font-medium text-primary-600 hover:underline dark:text-primary-500">
+										<Link href="/" className="font-medium text-primary-600 hover:underline dark:text-primary-500">
 											Login here
 										</Link>
 									</p>
