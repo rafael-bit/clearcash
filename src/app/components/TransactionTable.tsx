@@ -137,7 +137,7 @@ export default function TransactionTable({ user }: TransactionTableProps) {
 
 	return (
 		<section className="min-h-screen mt-4">
-			<div className="box__table overflow-auto rounded-lg shadow-lg bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600">
+			<div className="box__table overflow-x-auto rounded-lg shadow-lg bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-600">
 				<button
 					className="mb-4 bg-blue-500 text-white dark:bg-blue-700 dark:text-gray-200 px-4 py-2 rounded"
 					onClick={() => setShowFilters(!showFilters)}
@@ -197,7 +197,7 @@ export default function TransactionTable({ user }: TransactionTableProps) {
 						</div>
 					</div>
 				)}
-				<table id="data-table" className="w-full border-separate border-spacing-y-2">
+				<table id="data-table" className="min-w-full table-fixed border-separate border-spacing-y-2">
 					<thead>
 						<tr className="w-full bg-gray-100 dark:bg-gray-700">
 							<th
@@ -225,7 +225,7 @@ export default function TransactionTable({ user }: TransactionTableProps) {
 									▼
 								</span>
 							</th>
-							<th></th>
+							<th className="px-4 py-2 text-left dark:text-gray-200 min-w-[50px]"></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -245,7 +245,7 @@ export default function TransactionTable({ user }: TransactionTableProps) {
 								</td>
 								<td>
 									<img
-										className="cursor-pointer"
+										className="cursor-pointer w-6 h-6 object-contain"
 										src="/minus.svg"
 										alt="Remove transaction"
 										onClick={() => removeTransaction(transaction._id)}
