@@ -18,7 +18,7 @@ export default function Login() {
     };
 
     try {
-      const response = await fetch('http://localhost:8080/api/users/login', {
+      const response = await fetch('https://clearcashback.onrender.com/api/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -30,13 +30,18 @@ export default function Login() {
 
       if (response.ok) {
         setFeedback('Login successful!');
-        const userId = responseData.id; // Aqui estamos pegando o id da resposta
-        if (userId) {
+
+        const token = responseData.token;
+        const userId = responseData.id;
+
+        if (token && userId) {
+          localStorage.setItem('token', token);
+          
           setTimeout(() => {
             router.push(`/home/${userId}`);
           }, 1000);
         } else {
-          setFeedback('User ID is missing in the response.');
+          setFeedback('User ID or token is missing in the response.');
         }
       } else if (response.status === 400) {
         setFeedback('Invalid credentials. Please check your email and password.');

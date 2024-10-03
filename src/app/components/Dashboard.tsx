@@ -28,7 +28,13 @@ export default function Dashboard({ user }: DashboardProps) {
 	useEffect(() => {
 		const fetchTransactions = async () => {
 			try {
-				const response = await fetch(`http://localhost:8080/api/transactions/${user}`);
+				const token = localStorage.getItem('token');
+				const response = await fetch(`https://clearcashback.onrender.com/api/transactions/${user}`, {
+					method: 'GET',
+					headers: {
+						'Authorization': `Bearer ${token}`,
+					},
+				});
 				if (!response.ok) {
 					throw new Error('Failed to fetch transactions');
 				}
@@ -126,7 +132,7 @@ export default function Dashboard({ user }: DashboardProps) {
 						onClick={downloadReportPDF}
 						className="bg-blue-500 text-white px-4 py-2 rounded w-56 h-12"
 					>
-						Download PDF Report
+						Download PDF
 					</button>
 				</div>
 			</div>

@@ -65,10 +65,12 @@ export default function ActionButton({ user, setTransactions }: ActionButtonProp
 		};
 
 		try {
-			const response = await fetch('http://localhost:8080/api/transactions', {
+			const token = localStorage.getItem('token');
+			const response = await fetch('https://clearcashback.onrender.com/api/transactions', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${token}`,
 				},
 				body: JSON.stringify(transactionData),
 			});
@@ -78,8 +80,8 @@ export default function ActionButton({ user, setTransactions }: ActionButtonProp
 				setTransactions((prevTransactions) => [...prevTransactions, newTransaction]);
 				setFeedback('Transaction added successfully');
 				setTimeout(() => setFeedback(null), 2000);
-				window.location.reload();
 				closeModal();
+				window.location.reload();
 			} else {
 				setFeedback('Failed to add transaction');
 				setTimeout(() => setFeedback(null), 2000);

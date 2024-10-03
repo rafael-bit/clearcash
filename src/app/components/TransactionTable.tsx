@@ -33,7 +33,12 @@ export default function TransactionTable({ user }: TransactionTableProps) {
 	useEffect(() => {
 		const fetchTransactions = async () => {
 			try {
-				const response = await fetch(`http://localhost:8080/api/transactions/${user}`);
+				const token = localStorage.getItem("token");
+				const response = await fetch(`https://clearcashback.onrender.com/api/transactions/${user}`, {
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				});
 				if (!response.ok) {
 					throw new Error("Failed to fetch transactions");
 				}
@@ -107,8 +112,12 @@ export default function TransactionTable({ user }: TransactionTableProps) {
 
 	const removeTransaction = async (id: string) => {
 		try {
-			const response = await fetch(`http://localhost:8080/api/transactions/${id}`, {
+			const token = localStorage.getItem("token");
+			const response = await fetch(`https://clearcashback.onrender.com/api/transactions/${id}`, {
 				method: "DELETE",
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
 			});
 
 			if (!response.ok) {

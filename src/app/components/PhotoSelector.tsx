@@ -22,7 +22,7 @@ export default function PhotoSelector({ user, userId }: { user: any; userId: str
 
 	const updatePhoto = async (photoUrl: string) => {
 		try {
-			const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
+			const response = await fetch(`https://clearcashback.onrender.com/api/users/${userId}`, {
 				method: 'PUT',
 				headers: {
 					'Content-Type': 'application/json',

@@ -7,7 +7,7 @@ import StyleSection from "@/app/components/StyleSection";
 
 const fetchUserData = async (userId: string) => {
 	try {
-		const response = await fetch(`http://localhost:8080/api/users/${userId}`);
+		const response = await fetch(`https://clearcashback.onrender.com/api/users/${userId}`);
 		if (!response.ok) {
 			throw new Error("Erro ao buscar usuário");
 		}
@@ -21,7 +21,7 @@ const fetchUserData = async (userId: string) => {
 
 const updateUserData = async (userId: string, data: { name: string; email: string }) => {
 	try {
-		const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
+		const response = await fetch(`https://clearcashback.onrender.com/api/users/${userId}`, {
 			method: "PUT",
 			headers: {
 				"Content-Type": "application/json",
@@ -41,7 +41,7 @@ const updateUserData = async (userId: string, data: { name: string; email: strin
 
 const updatePassword = async (userId: string, newPassword: string) => {
 	try {
-		const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
+		const response = await fetch(`https://clearcashback.onrender.com/api/users/${userId}`, {
 			method: "PUT",
 			headers: {
 				"Content-Type": "application/json",
@@ -290,12 +290,12 @@ export default function Configuration() {
 						</svg>
 						Styles
 					</h1>
-					<div className="flex flex-col items-center ">
+					<div className="flex flex-col items-center mb-5">
 						<StyleSection />
 					</div>
 				</div>
-				<div id="language">
-
+				<div id="language" className=" flex justify-center w-4/5 text-center p-10">
+						Change Language will be soon....
 				</div>
 			</main>
 		</div>

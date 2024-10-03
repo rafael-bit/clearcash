@@ -55,7 +55,7 @@ export default function NavBar({ user }: NavBarProps) {
 
 	return (
 		<>
-			<nav className="z-30 bg-white border-b border-gray-200 px-4 py-2.5 dark:bg-gray-800 dark:border-gray-700 fixed left-0 right-0 top-0 ">
+			<nav className="z-20 bg-white border-b border-gray-200 px-4 py-2.5 dark:bg-gray-800 dark:border-gray-700 fixed left-0 right-0 top-0 ">
 				<div className="flex flex-wrap justify-between items-center">
 					<div className="flex justify-start items-center">
 						<button

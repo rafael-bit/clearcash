@@ -10,7 +10,7 @@ export default function Aside({ user }: AsideProps) {
 
 	return (
 			<aside
-			className={`fixed top-0 left-0 z-20 w-64 h-screen pt-14 transition-transform ${isOpen ? "-translate-x-full" : "translate-x-0"
+			className={`fixed top-0 left-0 z-10 w-64 h-screen pt-14 transition-transform ${isOpen ? "-translate-x-full" : "translate-x-0"
 					} bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700`}
 				aria-label="Sidenav"
 				id="drawer-navigation"
@@ -174,7 +174,7 @@ export default function Aside({ user }: AsideProps) {
 				>
 					<li>
 						<a
-							href="http://localhost:8080/api-docs"
+							href="https://clearcashback.onrender.com/api-docs"
 							className="flex items-center p-2 text-base font-medium text-gray-900 rounded-lg transition duration-75 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white group"
 						>
 							<svg

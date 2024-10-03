@@ -32,8 +32,13 @@ export default function Home() {
 	useEffect(() => {
 		if (id) {
 			const fetchUser = async () => {
+				const token = localStorage.getItem('token');
 				try {
-					const response = await fetch(`http://localhost:8080/api/users/${id}`);
+					const response = await fetch(`https://clearcashback.onrender.com/api/users/${id}`, {
+						headers: {
+							'Authorization': `Bearer ${token}`,
+						},
+					});
 					if (!response.ok) {
 						throw new Error('User not found');
 					}
@@ -45,8 +50,13 @@ export default function Home() {
 			};
 
 			const fetchTransactions = async () => {
+				const token = localStorage.getItem('token'); 
 				try {
-					const response = await fetch(`http://localhost:8080/api/transactions/${id}`);
+					const response = await fetch(`https://clearcashback.onrender.com/api/transactions/${id}`, {
+						headers: {
+							'Authorization': `Bearer ${token}`,
+						},
+					});
 					if (!response.ok) {
 						throw new Error('Failed to fetch transactions');
 					}
@@ -75,7 +85,6 @@ export default function Home() {
 			.reduce((acc, transaction) => acc + transaction.amount, 0);
 
 	const calculateBalance = () => calculateIncome() + calculateExpenses();
-
 
 	if (loading) {
 		return (
