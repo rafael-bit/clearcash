@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import NavBar from '@/app/components/NavBar';
 import Dashboard from '@/app/components/Dashboard';
 import ActionButton from '@/app/components/ActionButton';
@@ -25,9 +25,23 @@ interface Transaction {
 
 export default function Home() {
 	const { id } = useParams();
+	const router = useRouter();
 	const [user, setUser] = useState<User | null>(null);
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
 	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		const lastActive = localStorage.getItem("lastActive");
+		const inactivityLimit = 3600000;
+
+		if (lastActive) {
+			const timeSinceLastActive = Date.now() - parseInt(lastActive, 10);
+			if (timeSinceLastActive > inactivityLimit) {
+				router.push("/");
+			}
+		}
+		localStorage.setItem("lastActive", Date.now().toString());
+	}, [router]);
 
 	useEffect(() => {
 		if (id) {

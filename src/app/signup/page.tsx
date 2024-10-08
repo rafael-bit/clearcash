@@ -5,30 +5,23 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function Signup() {
+	const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
 	const [feedback, setFeedback] = useState<string | null>(null);
 	const router = useRouter();
 
-	const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
-
-		const formData = new FormData(event.currentTarget);
-		const name = formData.get('name') as string;
-		const email = formData.get('email') as string;
-		const password = formData.get('password') as string;
-		const confirmPassword = formData.get('confirmPassword') as string;
+	const submitSignupForm = async () => {
+		const { name, email, password, confirmPassword } = formData;
 
 		if (password !== confirmPassword) {
 			setFeedback('Passwords do not match.');
 			return;
 		}
 
-		const data = { name, email, password };
-
 		try {
 			const response = await fetch('https://clearcashback.onrender.com/api/users', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(data),
+				body: JSON.stringify({ name, email, password }),
 			});
 
 			if (!response.ok) {
@@ -37,22 +30,28 @@ export default function Signup() {
 			}
 
 			setFeedback('Account created successfully!');
-
-			setTimeout(() => {
-				router.push('/');
-			}, 500);
+			setTimeout(() => router.push('/'), 500);
 		} catch (error: any) {
-			console.error('Submission error:', error);
+			console.error('Error during submission:', error);
 			setFeedback(error.message);
 		}
 	};
 
-	useEffect(() => {
-		const timeoutId = setTimeout(() => {
-			setFeedback(null);
-		}, 5000);
+	const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const { name, value } = event.target;
+		setFormData((prev) => ({ ...prev, [name]: value }));
+	};
 
-		return () => clearTimeout(timeoutId);
+	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		submitSignupForm();
+	};
+
+	useEffect(() => {
+		if (feedback) {
+			const timeoutId = setTimeout(() => setFeedback(null), 5000);
+			return () => clearTimeout(timeoutId);
+		}
 	}, [feedback]);
 
 	return (
@@ -69,93 +68,64 @@ export default function Signup() {
 								<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
 									Create an account
 								</h1>
-								<form onSubmit={onSubmit} className="space-y-4 md:space-y-6">
-									<div>
-										<label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-											Your name
-										</label>
-										<input
-											type="text"
-											name="name"
-											id="name"
-											className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-											placeholder="Paul Matter"
-											required
-										/>
-									</div>
-									<div>
-										<label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-											Your email
-										</label>
-										<input
-											type="email"
-											name="email"
-											id="email"
-											className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-											placeholder="name@company.com"
-											required
-										/>
-									</div>
-									<div>
-										<label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-											Password
-										</label>
-										<input
-											type="password"
-											name="password"
-											id="password"
-											placeholder="••••••••"
-											className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-											required
-										/>
-									</div>
-									<div>
-										<label htmlFor="confirmPassword" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-											Confirm password
-										</label>
-										<input
-											type="password"
-											name="confirmPassword"
-											id="confirmPassword"
-											placeholder="••••••••"
-											className={`bg-gray-50 border ${feedback?.includes('Passwords do not match') ? 'border-red-500' : 'border-gray-300'} text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
-											required
-										/>
-									</div>
-									<div className="flex items-start">
-										<div className="flex items-center h-5">
-											<input
-												id="terms"
-												aria-describedby="terms"
-												type="checkbox"
-												className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
-												required
-											/>
-										</div>
+								<form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+									<InputField
+										id="name"
+										label="Your name"
+										type="text"
+										placeholder="Paul Matter"
+										value={formData.name}
+										onChange={handleInputChange}
+										required
+									/>
+									<InputField
+										id="email"
+										label="Your email"
+										type="email"
+										placeholder="name@company.com"
+										value={formData.email}
+										onChange={handleInputChange}
+										required
+									/>
+									<InputField
+										id="password"
+										label="Password"
+										type="password"
+										placeholder="••••••••"
+										value={formData.password}
+										onChange={handleInputChange}
+										required
+									/>
+									<InputField
+										id="confirmPassword"
+										label="Confirm password"
+										type="password"
+										placeholder="••••••••"
+										value={formData.confirmPassword}
+										onChange={handleInputChange}
+										required
+										error={feedback?.includes('Passwords do not match')}
+									/>
 
-										<div className="ml-3 text-sm">
-											<label htmlFor="terms" className="font-light text-gray-500 dark:text-gray-300">
-												I accept the{' '}
-												<Link href="/terms" className="font-medium text-primary-600 hover:underline dark:text-primary-500">
-													Terms and Conditions
-												</Link>
-											</label>
-										</div>
+									<div className="flex items-start">
+										<CheckboxField />
+										<TermsLink />
 									</div>
+
 									<button
 										type="submit"
-										className="w-full bg-primary-600 hover:bg-primary-700 focus:ring-4 font-medium rounded-lg text-md px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 border dark:text-white"
+										className="w-full border-none bg-gray-600 hover:bg-gray-700 focus:ring-4 font-medium rounded-lg text-md px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800 border dark:text-white"
 									>
 										Create an account
 									</button>
+
 									{feedback && (
-										<div className={`fixed top-0 p-4 mb-4 text-sm ${feedback.includes('successfully') ? 'text-green-800 bg-green-50 dark:text-green-400 dark:bg-gray-800' : 'text-red-800 bg-red-50 dark:text-red-400 dark:bg-gray-800'}`} role="alert">
-											<span className="font-medium">{feedback.includes('successfully') ? 'Success' : 'Error'}</span> {feedback}
-										</div>
+										<FeedbackMessage feedback={feedback} />
 									)}
+
 									<p className="text-sm font-light text-gray-500 dark:text-gray-400">
 										Already have an account?{' '}
-										<Link href="/" className="font-medium text-primary-600 hover:underline dark:text-primary-500">
+										<Link href="/" className="font-medium text-gray-600 hover:underline dark:text-gray-500">
 											Login here
 										</Link>
 									</p>
@@ -168,3 +138,71 @@ export default function Signup() {
 		</main>
 	);
 }
+
+const InputField = ({
+	id,
+	label,
+	type,
+	placeholder,
+	value,
+	onChange,
+	required,
+	error = false,
+}: {
+	id: string;
+	label: string;
+	type: string;
+	placeholder: string;
+	value: string;
+	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	required?: boolean;
+	error?: boolean;
+}) => (
+	<div>
+		<label htmlFor={id} className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+			{label}
+		</label>
+		<input
+			id={id}
+			name={id}
+			type={type}
+			placeholder={placeholder}
+			value={value}
+			onChange={onChange}
+			required={required}
+			className={`bg-gray-50 border ${error ? 'border-red-500' : 'border-gray-300'} text-gray-900 sm:text-sm rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500`}
+		/>
+	</div>
+);
+
+const CheckboxField = () => (
+	<div className="flex items-center h-5">
+		<input
+			id="terms"
+			aria-describedby="terms"
+			type="checkbox"
+			className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-gray-600 dark:ring-offset-gray-800"
+			required
+		/>
+	</div>
+);
+
+const TermsLink = () => (
+	<div className="ml-3 text-sm">
+		<label htmlFor="terms" className="font-light text-gray-500 dark:text-gray-300">
+			I accept the{' '}
+			<Link href="/terms" className="font-medium text-gray-600 hover:underline dark:text-gray-500">
+				Terms and Conditions
+			</Link>
+		</label>
+	</div>
+);
+
+const FeedbackMessage = ({ feedback }: { feedback: string }) => (
+	<div
+		className={`fixed top-0 p-4 mb-4 text-sm ${feedback.includes('successfully') ? 'text-green-800 bg-green-50 dark:text-green-400 dark:bg-gray-800' : 'text-red-800 bg-red-50 dark:text-red-400 dark:bg-gray-800'}`}
+		role="alert"
+	>
+		<span className="font-medium">{feedback.includes('successfully') ? 'Success' : 'Error'}</span> {feedback}
+	</div>
+);
