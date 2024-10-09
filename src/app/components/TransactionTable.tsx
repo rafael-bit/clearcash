@@ -11,9 +11,10 @@ interface Transaction {
 
 interface TransactionTableProps {
 	user: string;
+	searchTerm: string;
 }
 
-export default function TransactionTable({ user }: TransactionTableProps) {
+export default function TransactionTable({ user, searchTerm }: TransactionTableProps, ) {
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
 	const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -130,6 +131,24 @@ export default function TransactionTable({ user }: TransactionTableProps) {
 			console.error("Error removing transaction:", error);
 		}
 	};
+
+	useEffect(() => {
+		const highlightSearchTerm = (text: string, term: string) => {
+			if (!term) return text;
+			const regex = new RegExp(`(${term})`, "gi");
+			return text.replace(regex, `<span style="background-color: yellow;">$1</span>`);
+		};
+
+		const filtered = transactions.map(transaction => {
+			if (searchTerm) {
+				const highlightedDescription = highlightSearchTerm(transaction.description, searchTerm);
+				return { ...transaction, highlightedDescription };
+			}
+			return { ...transaction, highlightedDescription: transaction.description };
+		});
+
+		setFilteredTransactions(filtered);
+	}, [searchTerm, transactions]);
 
 	if (loading) {
 		return <div>Loading...</div>;

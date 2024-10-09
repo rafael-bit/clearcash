@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { Pie } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, Title, Tooltip, Legend, ArcElement } from 'chart.js';
+import { Pie, Bar, Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, Title, Tooltip, Legend, ArcElement, PointElement, LineElement, BarElement } from 'chart.js';
 import jsPDF from 'jspdf';
 
-ChartJS.register(CategoryScale, LinearScale, ArcElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, ArcElement, Title, Tooltip, Legend, PointElement, LineElement, BarElement);
 
 interface Transaction {
 	_id: string;
@@ -23,6 +23,7 @@ interface DashboardProps {
 export default function Dashboard({ user }: DashboardProps) {
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [chartType, setChartType] = useState<'pie' | 'bar' | 'line'>('pie');
 	const chartRef = useRef<any>(null);
 
 	useEffect(() => {
@@ -118,12 +119,27 @@ export default function Dashboard({ user }: DashboardProps) {
 
 	return (
 		<div className="p-4 border border-gray-200 dark:border-gray-600 shadow bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700">
-			<h2 className="text-gray-600 dark:text-gray-200 text-2xl font-bold mb-7 p-4">Dashboard</h2>
+			<h2 className="text-gray-600 dark:text-gray-200 text-2xl font-bold mb-7 px-1 pt-4">Dashboard</h2>
 			<div className="lg:flex justify-evenly items-center">
 				<div className="lg:w-1/3 mb-8">
-					<Pie ref={chartRef} data={data} options={options} />
+					{chartType === 'pie' && <Pie ref={chartRef} data={data} options={options} />}
+					{chartType === 'bar' && <Bar ref={chartRef} data={data} options={options} />}
+					{chartType === 'line' && <Line ref={chartRef} data={data} options={options} />}
 				</div>
 				<div className="text-lg font-semibold mb-4">
+					<div className="mb-4">
+						<label htmlFor="chartType" className="block text-lg font-semibold mb-2">Select Chart Type:</label>
+						<select
+							id="chartType"
+							value={chartType}
+							onChange={(e) => setChartType(e.target.value as 'pie' | 'bar' | 'line')}
+							className="bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded p-2"
+						>
+							<option value="pie">Pie Chart</option>
+							<option value="bar">Bar Chart</option>
+							<option value="line">Line Chart</option>
+						</select>
+					</div>
 					<p className={income >= expenses ? "text-green-500" : "text-red-500"}>
 						{balanceStatus}
 					</p>

@@ -29,6 +29,8 @@ export default function Home() {
 	const [user, setUser] = useState<User | null>(null);
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [searchTerm, setSearchTerm] = useState("");
+
 
 	useEffect(() => {
 		const lastActive = localStorage.getItem("lastActive");
@@ -64,7 +66,7 @@ export default function Home() {
 			};
 
 			const fetchTransactions = async () => {
-				const token = localStorage.getItem('token'); 
+				const token = localStorage.getItem('token');
 				try {
 					const response = await fetch(`https://clearcashback.onrender.com/api/transactions/${id}`, {
 						headers: {
@@ -135,7 +137,7 @@ export default function Home() {
 
 	return (
 		<div className="antialiased bg-gray-50 dark:bg-gray-900">
-			<NavBar user={user} />
+			<NavBar user={user} onSearch={setSearchTerm} />
 
 			<main className="p-4 md:ml-64 h-auto pt-20">
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
@@ -171,8 +173,8 @@ export default function Home() {
 				</div>
 				<ActionButton user={user._id} setTransactions={setTransactions} />
 				<Dashboard user={user._id} />
-				<TransactionTable user={ user._id }/>
-				</main>
+				<TransactionTable user={user._id} searchTerm={searchTerm} />
+			</main>
 		</div>
 	);
 }
