@@ -1,66 +1,90 @@
-# ClearCash - Seu App de Finanças Pessoais
+<p align="center" ">
+   <img src="https://github.com/rafael-bit/clearcash/blob/master/public/icon-init.png" alt="ClearCash Logo"  width="150"/>
+</p>
 
-Bem-vindo ao ClearCash, o seu aplicativo completo de finanças pessoais construído com Next.js e TypeScript. ClearCash foi projetado para ajudar as pessoas a organizar e controlar seus gastos, despesas, investimentos e muito mais, proporcionando uma visão clara e eficiente de suas finanças pessoais.
+<h1 align="center">
+    <a>ClearCash</a>
+</h1>
 
-## Recursos Principais
+<p align="center">
+    Manage your personal finances with clarity and efficiency
+</p>
 
-- **Gerenciamento de Despesas:** Registre e categorize suas despesas diárias para entender para onde está indo o seu dinheiro.
-- **Acompanhamento de Receitas:** Registre suas fontes de receita para ter uma visão abrangente de sua situação financeira.
-- **Orçamento Personalizado:** Estabeleça metas e orçamentos mensais para manter-se no caminho certo.
-- **Acompanhamento de Investimentos:** Integre suas contas de investimento para monitorar o desempenho e o crescimento ao longo do tempo.
-- **Relatórios Detalhados:** Obtenha relatórios detalhados e visualizações gráficas para análise fácil e rápida.
+<p align="center">
+   <a href="https://github.com/rafael-bit/clearcash">
+    <img src="https://img.shields.io/github/stars/rafael-bit/clearcash?label=rafael-bit%2Fclearcash" alt="ClearCash repository stars" />
+  </a>
+</p>
 
-## Pré-requisitos
+---
 
-Antes de começar, certifique-se de ter o Node.js e o npm ou yarn instalados em sua máquina.
+# 🧾 How It Works
 
-```bash
-# Instale as dependências do projeto
-npm install
-# or
-yarn add
-```
+ClearCash is a personal finance app built with **Next.js** and **TypeScript**, designed to help users control expenses, income, budgets, and investments. It offers a user-friendly interface with detailed reports, providing a comprehensive view of your financial health.
 
-## Configuração
+---
 
-1. Clone o repositório para sua máquina local:
+# :pushpin: Table of Contents
 
+* [Running Locally](#construction_worker-running-locally)  
+* [FAQ](#postbox-faq)  
+* [Issues](#bug-issues)  
+* [Contributing](#tada-contributing)  
+
+---
+
+## :construction_worker: Running Locally
+
+#### Clone the repository:
 ```bash
 git clone https://github.com/rafael-bit/clearcash.git
 ```
 
-2. Navegue até o diretório do projeto:
-
+#### Navigate to the project directory:
 ```bash
 cd clearcash
 ```
 
-3. Instale as dependências:
-
+#### Install dependencies and run the app in development mode:
 ```bash
+# Using npm
 npm install
-# or
-yarn dev
-```
-
-4. Execute o aplicativo em modo de desenvolvimento:
-
-```bash
 npm run dev
-# or
+
+# Or using yarn
+yarn
 yarn dev
 ```
 
-Acesse [http://localhost:3000](http://localhost:3000) em seu navegador para ver o ClearCash em ação!
-
-## Contribuindo
-
-Sinta-se à vontade para contribuir para o desenvolvimento do ClearCash. Se encontrou algum problema ou tem sugestões de novos recursos, abra uma issue ou envie um pull request.
-
-## Licença
-
-Este projeto é licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+Open your browser at [http://localhost:3000](http://localhost:3000) to see ClearCash in action!
 
 ---
 
-Esperamos que o ClearCash seja uma ferramenta valiosa para ajudar você a alcançar seus objetivos financeiros. Obrigado por escolher o ClearCash!
+# :postbox: FAQ
+
+**Question:** Can I contribute to the project?  
+**Answer:** Absolutely! Check out the [Contributing](#tada-contributing) section for more details.
+
+---
+
+# :bug: Issues
+
+If you encounter any problems, feel free to **open an issue** with a suitable title and description. Suggestions for improvements are always welcome!
+
+---
+
+# 💡 Author
+
+- Rafael ([@rafael-bit](https://github.com/rafael-bit))
+
+---
+
+# :tada: Contributing
+
+If you’d like to contribute, please follow the guidelines on the [Contributing](https://github.com/rafael-bit/clearcash/blob/main/CONTRIBUTING.md) page. Your help is greatly appreciated!
+
+---
+
+# 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/rafael-bit/clearcash/blob/main/LICENSE) file for details.
