@@ -138,7 +138,7 @@ export default function AuthForm() {
 							</div>
 						</form>
 					</CardContent>
-					<CardFooter className="w-full mt-7">
+					<CardFooter className="flex flex-col items-center w-full mt-7">
 						<Button
 							className="w-full bg-teal9"
 							onClick={handleSubmit}
