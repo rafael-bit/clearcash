@@ -13,7 +13,6 @@ import { toast } from 'sonner'
 import Image from 'next/image'
 import Link from 'next/link'
 export default function AuthForm() {
-	const [email, setEmail] = useState('')
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState('')
 	const [success, setSuccess] = useState(false)
@@ -22,46 +21,55 @@ export default function AuthForm() {
 
 	const handleSubmit = form.handleSubmit(async (data) => {
 		setIsLoading(true)
+		setError('')
 		try {
-			const res = await signIn('email', { email: data.email, redirect: false })
-			if (res?.ok) {
-				setSuccess(true)
-				toast.success('Magic Link Sent. Check your email for the magic link to login')
-			} else {
-				setError('There was a problem sending the magic link.')
-			}
-		} catch (err) {
-			setError('Error occurred while sending the magic link.')
-		} finally {
+			await signIn('email', {
+				email: data.email,
+				redirect: false,
+			})
 			setIsLoading(false)
+			setSuccess(true)
+			toast.success('Check your email for the login link!')
+		} catch (error) {
+			setIsLoading(false)
+			setError('Failed to send magic link')
+			setSuccess(false)
+			toast.error('Something went wrong. Please try again.')
+			console.error('Sign in error:', error)
 		}
 	})
 
 	const handleProviderLogin = async (provider: string) => {
 		setIsLoading(true)
+		setError('')
 		try {
-			const result = await signIn(provider, { redirect: false })
-
+			const result = await signIn(provider, {
+				callbackUrl: '/app',
+			})
 			if (result?.error) {
 				handleLoginError(result.error, provider)
-			} else {
-				toast.success(`You have successfully logged in with ${provider}.`)
 			}
-		} catch (err) {
-			toast.error(`Error occurred with ${provider} login`)
-		} finally {
+		} catch (error) {
 			setIsLoading(false)
+			setError(`Failed to sign in with ${provider}`)
+			toast.error('Something went wrong. Please try again.')
+			console.error(`${provider} sign in error:`, error)
 		}
 	}
 
 	const handleLoginError = (error: string, provider: string) => {
+		setIsLoading(false)
 		if (error.includes("OAuthAccountNotLinked")) {
+			setError("Email already used with a different provider")
 			toast.error("Account not linked")
 		} else if (error.includes("OAuthSignin")) {
+			setError("Authentication failed")
 			toast.error("Failed to sign in")
 		} else if (error.includes("OAuthCallback")) {
+			setError("Authentication error")
 			toast.error("Authentication Error")
 		} else {
+			setError(`An unknown error occurred`)
 			toast.error(`An unknown error occurred during ${provider} login. Please try again later.`)
 		}
 	}
@@ -169,7 +177,7 @@ export default function AuthForm() {
 				<div className='hidden md:block w-[43%]'>
 					<Image src={'/login.svg'} alt="" width={350} height={350} />
 					<div className='bg-white w-88 py-10 p-5 rounded-b-3xl -mt-[140px] relative z-50'>
-						<Image src={'/logoGreen.svg'} alt="" width={100} height={100}/>
+						<Image src={'/logoGreen.svg'} alt="" width={100} height={100} />
 						<p className='pt-4 text-sm'>Gerencie suas finanças pessoais de uma forma simples com o fincheck, e o melhor, totalmente de graça!</p>
 					</div>
 				</div>
