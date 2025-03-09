@@ -95,6 +95,11 @@
   background-color: var(--gray-0);
 }
 
+.bg-teal9h:hover {
+  background-color: #04684a;
+  transition: all 0.3s ease;
+}
+
 .text-gray0 {
   color: var(--gray-0);
 }
