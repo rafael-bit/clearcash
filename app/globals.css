@@ -7,6 +7,7 @@
 :root {
   --teal-9: #087F5B;
   --gray-0: #F8F9FA;
+  --gray-1: #f6f8fa;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -102,6 +103,10 @@
 
 .text-gray0 {
   color: var(--gray-0);
+}
+
+.bg-gray1 {
+  background-color: var(--gray-1);
 }
 
 .hoverteal:hover{
