@@ -7,7 +7,7 @@ export default function Pricing() {
 			<h1 className="text-4xl font-bold">Pricing</h1>
 			<p className="text-sm text-gray-500 mb-10">You can improve your plan by adding more features to your plan.</p>
 			<div className="flex flex-col md:flex-row gap-4 justify-center">
-				<div className="bg-gray-100 p-7 rounded-lg max-w-1/2">
+				<div className="bg-gray-100 p-7 rounded-lg lg:max-w-1/2 m-5 lg:m-0">
 					<HeartIcon className="w-9 h-9 text-green-700" />
 					<div className="px-4 p-1 mt-5 bg-white inline-block rounded-full">
 						<h2 className="text-lg font-bold  bg-linear-to-r from-green-600 to-teal-600 text-transparent bg-clip-text">Free Account</h2>
@@ -36,7 +36,7 @@ export default function Pricing() {
 					</ul>
 					<Button className="mt-10 text-center w-full bg-white text-green-700 hover:bg-linear-to-r from-green-600 to-teal-600 hover:text-white transition-all duration-300">Get Started</Button>
 				</div>
-				<div className="bg-teal9 p-7 rounded-lg max-w-1/2">
+				<div className="bg-teal9 p-7 rounded-lg lg:max-w-1/2 m-5 lg:m-0">
 					<CrownIcon className="w-9 h-9 text-gray-100" />
 					<div className="px-4 p-1 mt-5 bg-white inline-block rounded-full">
 						<h2 className="text-lg font-bold  bg-linear-to-r from-green-600 to-teal-600 text-transparent bg-clip-text">Max Account</h2>
