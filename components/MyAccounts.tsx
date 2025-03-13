@@ -10,6 +10,7 @@ import {
 import { Card } from "@/components/ui/card"
 import Image from "next/image"
 import clsx from "clsx"
+import { useVisibility } from "./VisibilityProvider"
 
 type AccountType = 'bank' | 'investment' | 'wallet'
 
@@ -21,7 +22,9 @@ type Account = {
 	currency: string
 }
 
-export default function MyAccounts({ isHidden }: { isHidden: boolean }) {
+export default function MyAccounts() {
+	const { isHidden } = useVisibility();
+
 	const accounts: Account[] = [
 		{
 			id: 1,
@@ -56,11 +59,11 @@ export default function MyAccounts({ isHidden }: { isHidden: boolean }) {
 	const getAccountIcon = (type: AccountType) => {
 		switch (type) {
 			case 'bank':
-				return "/cardGray.svg"
+				return "/icons/cardGray.svg"
 			case 'investment':
-				return "/investiments.svg"
+				return "/icons/investiments.svg"
 			default:
-				return "/wallet.svg"
+				return "/icons/wallet.svg"
 		}
 	}
 
