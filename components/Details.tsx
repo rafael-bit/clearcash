@@ -139,7 +139,7 @@ export default function Details() {
 								<tbody>
 									{tab.transactions.map((transaction) => (
 										<tr key={transaction.id}>
-											<td className="flex justify-between p-2 bg-white hover:bg-gray-100 rounded-lg">
+											<td className="flex justify-between p-2 bg-white hover:bg-gray-100 rounded-lg my-1">
 												<div className="flex items-center gap-3">
 													<Image src={categoryIcons[transaction.category]} alt={transaction.category} width={40} height={40} />
 													<div>
