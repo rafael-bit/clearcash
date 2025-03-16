@@ -102,16 +102,16 @@ export default function Details() {
 	};
 
 	return (
-		<section className="rounded-xl bg-gray0 w-full p-7">
+		<section className="rounded-xl bg-gray0 w-full h-[85vh] p-7">
 			<div className="mb-7">
 				<Select defaultValue="transactions">
 					<SelectTrigger className="w-[180px]">
 						<SelectValue placeholder="Transactions type" />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="transactions">Transactions</SelectItem>
-						<SelectItem value="income">Income</SelectItem>
-						<SelectItem value="expenses">Expenses</SelectItem>
+						<SelectItem value="transactions"><Image src="/icons/transactions.svg" alt="transactions" width={20} height={20} /> Transactions</SelectItem>
+						<SelectItem value="income"><Image src="/icons/income.svg" alt="income" width={20} height={20} /> Income</SelectItem>
+						<SelectItem value="expenses"><Image src="/icons/expenses.svg" alt="expenses" width={20} height={20} /> Expenses</SelectItem>
 					</SelectContent>
 				</Select>
 			</div>
