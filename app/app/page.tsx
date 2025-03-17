@@ -2,7 +2,7 @@ import Header from '@/components/Header'
 import BalanceCard from '@/components/BalanceCard'
 import Details from '@/components/Details'
 import { VisibilityProvider } from '@/components/VisibilityProvider'
-import AddTransaction from '../AddTransaction'
+import AddTransaction from '../../components/AddTransaction'
 
 export default function Page() {
 	return (
