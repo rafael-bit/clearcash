@@ -20,6 +20,7 @@ type Account = {
 	institution: string
 	balance: number
 	currency: string
+	color: string
 }
 
 export default function MyAccounts() {
@@ -31,28 +32,32 @@ export default function MyAccounts() {
 			type: 'bank',
 			institution: "Nubank",
 			balance: 5000.00,
-			currency: "USD"
+			currency: "USD",
+			color: "#8300fd"
 		},
 		{
 			id: 2,
 			type: 'wallet',
 			institution: "Carteira",
 			balance: 12000.00,
-			currency: "USD"
+			currency: "USD",
+			color: "#05ff22"
 		},
 		{
 			id: 3,
 			type: 'investment',
 			institution: "Xp investimentos",
 			balance: 8500.00,
-			currency: "USD"
+			currency: "USD",
+			color: "#000000"
 		},
 		{
 			id: 4,
 			type: 'bank',
 			institution: "Inter",
 			balance: 3000.00,
-			currency: "USD"
+			currency: "USD",
+			color: "#dece19"
 		},
 	]
 
@@ -86,7 +91,7 @@ export default function MyAccounts() {
 				<CarouselContent>
 					{accounts.map((account) => (
 						<CarouselItem key={account.id} className="pl-2 md:pl-4 basis-full md:basis-3/5 lg:basis-2/5">
-							<Card className="p-4 bg-white backdrop-blur-sm">
+							<Card className="p-4 bg-white backdrop-blur-sm" style={{ borderBottom: `4px solid ${account.color}` }}>
 								<div className="flex flex-col">
 									<Image
 										src={getAccountIcon(account.type)}

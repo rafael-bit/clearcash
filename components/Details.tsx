@@ -48,6 +48,8 @@ const currentMonthIndex = new Date().getMonth();
 export default function Details() {
 	const { isHidden } = useVisibility();
 	const [currentIndex, setCurrentIndex] = useState<number>(currentMonthIndex);
+	const [filter, setFilter] = useState<"transactions" | "income" | "expense">("transactions");
+
 	const touchStartX = useRef<number>(0);
 	const touchEndX = useRef<number>(0);
 
@@ -104,14 +106,14 @@ export default function Details() {
 	return (
 		<section className="rounded-xl bg-gray0 w-full p-7">
 			<div className="mb-7">
-				<Select defaultValue="transactions">
+				<Select defaultValue="transactions" onValueChange={(value) => setFilter(value as "transactions" | "income" | "expense")}>
 					<SelectTrigger className="w-[180px]">
 						<SelectValue placeholder="Transactions type" />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="transactions">Transactions</SelectItem>
-						<SelectItem value="income">Income</SelectItem>
-						<SelectItem value="expenses">Expenses</SelectItem>
+						<SelectItem value="transactions"><Image src="/icons/transactions.svg" alt="transactions" width={20} height={20} /> Transactions</SelectItem>
+						<SelectItem value="income"><Image src="/icons/income.svg" alt="income" width={20} height={20} /> Income</SelectItem>
+						<SelectItem value="expense"><Image src="/icons/expenses.svg" alt="expense" width={20} height={20} /> Expenses</SelectItem>
 					</SelectContent>
 				</Select>
 			</div>
@@ -132,42 +134,49 @@ export default function Details() {
 						<ChevronRight className="h-6 w-6" />
 					</button>
 				</TabsList>
-				{tabs.map((tab) => (
-					<TabsContent key={tab.id} value={tab.id.toString()}>
-						{tab.transactions.length > 0 ? (
-							<table className="w-full border-collapse">
-								<tbody>
-									{tab.transactions.map((transaction) => (
-										<tr key={transaction.id}>
-											<td className="flex justify-between p-2 bg-white hover:bg-gray-100 rounded-lg my-1">
-												<div className="flex items-center gap-3">
-													<Image src={categoryIcons[transaction.category]} alt={transaction.category} width={40} height={40} />
-													<div>
-														<p>{transaction.title}</p>
-														<p className="text-xs text-neutral-500">{transaction.date.toLocaleDateString()}</p>
+
+				{tabs.map((tab) => {
+					const filteredTransactions = tab.transactions.filter((transaction) =>
+						filter === "transactions" ? true : transaction.type === filter
+					);
+
+					return (
+						<TabsContent key={tab.id} value={tab.id.toString()}>
+							{filteredTransactions.length > 0 ? (
+								<table className="w-full border-collapse">
+									<tbody>
+										{filteredTransactions.map((transaction) => (
+											<tr key={transaction.id}>
+												<td className="flex justify-between p-2 bg-white hover:bg-gray-100 rounded-lg my-1">
+													<div className="flex items-center gap-3">
+														<Image src={categoryIcons[transaction.category]} alt={transaction.category} width={40} height={40} />
+														<div>
+															<p>{transaction.title}</p>
+															<p className="text-xs text-neutral-500">{transaction.date.toLocaleDateString()}</p>
+														</div>
 													</div>
-												</div>
-												<p className={clsx(
-													"text-sm p-2 transition-all",
-													transaction.type === "expense" ? "text-red-500" : "text-green-500",
-													{ "blur-sm": isHidden }
-												)}>
-													{transaction.type === "expense" ? "-" : ""}
-													{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(transaction.amount)}
-												</p>
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						) : (
-							<div className="flex flex-col items-center justify-center h-full px-5 my-3">
-								<Image src="/empty.svg" alt="empty" width={300} height={300} />
-								<p className="text-center text-gray-500 py-4">No transactions found for this month.</p>
-							</div>
-						)}
-					</TabsContent>
-				))}
+													<p className={clsx(
+														"text-sm p-2 transition-all",
+														transaction.type === "expense" ? "text-red-500" : "text-green-500",
+														{ "blur-sm": isHidden }
+													)}>
+														{transaction.type === "expense" ? "-" : ""}
+														{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(transaction.amount)}
+													</p>
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							) : (
+								<div className="flex flex-col items-center justify-center h-full px-5 my-3">
+									<Image src="/empty.svg" alt="empty" width={300} height={300} />
+									<p className="text-center text-gray-500 py-4">No transactions found for this month.</p>
+								</div>
+							)}
+						</TabsContent>
+					);
+				})}
 			</Tabs>
 		</section>
 	);
