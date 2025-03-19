@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { FileDown, Printer } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
 	Select,
@@ -46,99 +46,22 @@ interface Transaction {
 	};
 }
 
-interface MonthData {
-	month: number;
-	year: number;
-	label: string;
-	transactions: Transaction[];
-	isLoading: boolean;
-}
-
 export default function Details() {
 	const { isHidden } = useVisibility();
 	const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
-	const [months, setMonths] = useState<MonthData[]>([]);
 	const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
 	const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 	const [isLoading, setIsLoading] = useState(true);
-	const [selectedMonth] = useState<Date>(new Date());
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-	useEffect(() => {
-		const generateMonths = () => {
-			const now = new Date();
-			const monthsArray: MonthData[] = [];
+	const getCurrentMonthLabel = useCallback(() => {
+		return format(new Date(currentYear, currentMonth), 'MMMM yyyy');
+	}, [currentMonth, currentYear]);
 
-			for (let i = 0; i < 12; i++) {
-				const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-				monthsArray.push({
-					month: date.getMonth(),
-					year: date.getFullYear(),
-					label: date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-					transactions: [],
-					isLoading: true
-				});
-			}
-
-			return monthsArray;
-		};
-
-		setMonths(generateMonths());
-	}, []);
-
-	useEffect(() => {
-		if (months.length === 0) return;
-
-		const fetchTransactions = async () => {
-			try {
-				setIsLoading(true);
-				const currentMonthData = months.find(m => m.month === currentMonth && m.year === currentYear);
-
-				if (!currentMonthData) return;
-
-				const response = await fetch(`/api/transactions?month=${currentMonth + 1}&year=${currentYear}`);
-
-				if (!response.ok) throw new Error('Failed to fetch transactions');
-
-				const data = await response.json();
-
-				setMonths(prev => prev.map(month => {
-					if (month.month === currentMonth && month.year === currentYear) {
-						return {
-							...month,
-							transactions: data,
-							isLoading: false
-						};
-					}
-					return month;
-				}));
-
-				setIsLoading(false);
-			} catch (error) {
-				console.error('Error fetching transactions:', error);
-				setIsLoading(false);
-			}
-		};
-
-		fetchTransactions();
-	}, [currentMonth, currentYear, months]);
-
-	useEffect(() => {
-		const handleAccountSelected = (event: CustomEvent<string>) => {
-			setSelectedAccountId(event.detail);
-		};
-
-		window.addEventListener('accountSelected', handleAccountSelected as EventListener);
-
-		return () => {
-			window.removeEventListener('accountSelected', handleAccountSelected as EventListener);
-		};
-	}, []);
-
-	const getCurrentMonthTransactions = async () => {
+	const fetchTransactions = useCallback(async () => {
 		try {
 			setIsLoading(true);
-			const response = await fetch(`/api/transactions?month=${selectedMonth.getMonth() + 1}&year=${selectedMonth.getFullYear()}`);
+			const response = await fetch(`/api/transactions?month=${currentMonth + 1}&year=${currentYear}`);
 			if (!response.ok) throw new Error('Failed to fetch transactions');
 
 			let data = await response.json();
@@ -153,15 +76,15 @@ export default function Details() {
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	}, [currentMonth, currentYear, selectedAccountId]);
 
 	useEffect(() => {
-		getCurrentMonthTransactions();
-	}, [selectedMonth, selectedAccountId, getCurrentMonthTransactions]);
+		fetchTransactions();
+	}, [fetchTransactions]);
 
 	useEffect(() => {
 		const handleTransactionUpdate = () => {
-			getCurrentMonthTransactions();
+			fetchTransactions();
 		};
 
 		window.addEventListener('transactionUpdated', handleTransactionUpdate);
@@ -169,7 +92,19 @@ export default function Details() {
 		return () => {
 			window.removeEventListener('transactionUpdated', handleTransactionUpdate);
 		};
-	}, [getCurrentMonthTransactions]);
+	}, [fetchTransactions]);
+
+	useEffect(() => {
+		const handleAccountSelected = (event: CustomEvent<string>) => {
+			setSelectedAccountId(event.detail);
+		};
+
+		window.addEventListener('accountSelected', handleAccountSelected as EventListener);
+
+		return () => {
+			window.removeEventListener('accountSelected', handleAccountSelected as EventListener);
+		};
+	}, []);
 
 	const handlePrint = () => {
 		window.print();
@@ -197,7 +132,7 @@ export default function Details() {
 			const link = document.createElement('a');
 			const url = URL.createObjectURL(blob);
 			link.setAttribute('href', url);
-			link.setAttribute('download', `transactions-${format(selectedMonth, 'MMMM-yyyy')}.csv`);
+			link.setAttribute('download', `transactions-${format(new Date(currentYear, currentMonth), 'MMMM-yyyy')}.csv`);
 			document.body.appendChild(link);
 			link.click();
 			document.body.removeChild(link);
@@ -207,20 +142,20 @@ export default function Details() {
 	};
 
 	const handleNextMonth = () => {
-		if (currentMonth === 0) {
-			setCurrentMonth(11);
-			setCurrentYear(prev => prev - 1);
-		} else {
-			setCurrentMonth(prev => prev - 1);
-		}
-	};
-
-	const handlePreviousMonth = () => {
 		if (currentMonth === 11) {
 			setCurrentMonth(0);
 			setCurrentYear(prev => prev + 1);
 		} else {
 			setCurrentMonth(prev => prev + 1);
+		}
+	};
+
+	const handlePreviousMonth = () => {
+		if (currentMonth === 0) {
+			setCurrentMonth(11);
+			setCurrentYear(prev => prev - 1);
+		} else {
+			setCurrentMonth(prev => prev - 1);
 		}
 	};
 
@@ -283,13 +218,13 @@ export default function Details() {
 
 			<div className="w-full relative">
 				<div className="flex justify-between items-center mb-4">
-					<button onClick={handleNextMonth} className="h-10 w-10 text-neutral-900 hover:text-neutral-800">
+					<button onClick={handlePreviousMonth} className="h-10 w-10 text-neutral-900 hover:text-neutral-800">
 						<ChevronLeft className="h-6 w-6" />
 					</button>
 					<h2 className="text-lg font-medium">
-						{months.find(m => m.month === currentMonth && m.year === currentYear)?.label || 'Loading...'}
+						{getCurrentMonthLabel()}
 					</h2>
-					<button onClick={handlePreviousMonth} className="h-10 w-10 text-neutral-900 hover:text-neutral-800">
+					<button onClick={handleNextMonth} className="h-10 w-10 text-neutral-900 hover:text-neutral-800">
 						<ChevronRight className="h-6 w-6" />
 					</button>
 				</div>
