@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { FileDown, Printer, Send } from "lucide-react";
+import { FileDown, Printer } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -56,13 +56,12 @@ interface MonthData {
 
 export default function Details() {
 	const { isHidden } = useVisibility();
-	const [filter, setFilter] = useState<"transactions" | "income" | "expense">("transactions");
 	const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 	const [months, setMonths] = useState<MonthData[]>([]);
 	const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
 	const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 	const [isLoading, setIsLoading] = useState(true);
-	const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+	const [selectedMonth] = useState<Date>(new Date());
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
 
 	useEffect(() => {
@@ -122,17 +121,17 @@ export default function Details() {
 		};
 
 		fetchTransactions();
-	}, [currentMonth, currentYear, months.length]);
+	}, [currentMonth, currentYear, months]);
 
 	useEffect(() => {
-		const handleAccountSelected = (event: CustomEvent) => {
+		const handleAccountSelected = (event: CustomEvent<string>) => {
 			setSelectedAccountId(event.detail);
 		};
 
-		window.addEventListener('accountSelected' as any, handleAccountSelected);
+		window.addEventListener('accountSelected', handleAccountSelected as EventListener);
 
 		return () => {
-			window.removeEventListener('accountSelected' as any, handleAccountSelected);
+			window.removeEventListener('accountSelected', handleAccountSelected as EventListener);
 		};
 	}, []);
 
@@ -158,7 +157,7 @@ export default function Details() {
 
 	useEffect(() => {
 		getCurrentMonthTransactions();
-	}, [selectedMonth, selectedAccountId]);
+	}, [selectedMonth, selectedAccountId, getCurrentMonthTransactions]);
 
 	useEffect(() => {
 		const handleTransactionUpdate = () => {
@@ -170,7 +169,7 @@ export default function Details() {
 		return () => {
 			window.removeEventListener('transactionUpdated', handleTransactionUpdate);
 		};
-	}, []);
+	}, [getCurrentMonthTransactions]);
 
 	const handlePrint = () => {
 		window.print();
@@ -233,7 +232,7 @@ export default function Details() {
 		<section className="rounded-xl bg-gray0 w-full p-7">
 			<div className="flex justify-between items-center mb-7">
 				<div className="flex items-center gap-4">
-					<Select defaultValue="transactions" onValueChange={(value) => setFilter(value as "transactions" | "income" | "expense")}>
+					<Select defaultValue="transactions">
 						<SelectTrigger className="w-[180px]">
 							<SelectValue placeholder="Transactions type" />
 						</SelectTrigger>

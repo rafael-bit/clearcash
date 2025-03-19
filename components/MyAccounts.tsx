@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import {
 	Carousel,
 	CarouselContent,
@@ -13,7 +13,6 @@ import Image from "next/image"
 import clsx from "clsx"
 import { useVisibility } from "./VisibilityProvider"
 import { PlusCircle } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useModal } from './ModalProvider'
 
 type BankAccount = {
@@ -33,11 +32,9 @@ export default function MyAccounts() {
 	const { isHidden } = useVisibility()
 	const [accounts, setAccounts] = useState<BankAccount[]>([])
 	const [isLoading, setIsLoading] = useState(true)
-	const [totalBalance, setTotalBalance] = useState(0)
 	const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null)
-	const router = useRouter()
 
-	const fetchAccounts = async () => {
+	const fetchAccounts = useCallback(async () => {
 		try {
 			setIsLoading(true)
 			const response = await fetch('/api/bank-accounts')
@@ -45,19 +42,16 @@ export default function MyAccounts() {
 
 			const data = await response.json()
 			setAccounts(data)
-
-			const total = data.reduce((sum: number, account: BankAccount) => sum + account.balance, 0)
-			setTotalBalance(total)
 		} catch (error) {
 			console.error('Error fetching accounts:', error)
 		} finally {
 			setIsLoading(false)
 		}
-	}
+	}, [])
 
 	useEffect(() => {
 		fetchAccounts()
-	}, [])
+	}, [fetchAccounts])
 
 	useEffect(() => {
 		const handleAccountUpdate = () => {
@@ -69,7 +63,7 @@ export default function MyAccounts() {
 		return () => {
 			window.removeEventListener('accountUpdated', handleAccountUpdate)
 		}
-	}, [])
+	}, [fetchAccounts])
 
 	const getAccountIcon = (type: string) => {
 		switch (type) {
