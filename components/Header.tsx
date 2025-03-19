@@ -1,4 +1,4 @@
-import UserInfo from "@/app/app/_components/user-info";
+import UserInfo from "@/app/dashboard/_components/user-info";
 import { auth } from "@/services/auth";
 import Image from "next/image";
 

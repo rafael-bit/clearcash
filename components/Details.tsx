@@ -1,7 +1,8 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState, useRef, TouchEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { FileDown, Printer, Send } from "lucide-react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
 	Select,
@@ -13,10 +14,11 @@ import {
 import Image from "next/image";
 import clsx from "clsx";
 import { useVisibility } from "./VisibilityProvider";
+import { format } from "date-fns";
 
 const categoryIcons: Record<string, string> = {
 	food: "/icons/food.svg",
-	home: "/icons/home.svg",
+	home: "/icons/house.svg",
 	education: "/icons/education.svg",
 	leisure: "/icons/leisure.svg",
 	market: "/icons/market.svg",
@@ -29,155 +31,316 @@ const categoryIcons: Record<string, string> = {
 };
 
 interface Transaction {
-	id: number;
-	type: "income" | "expense";
-	category: keyof typeof categoryIcons;
-	amount: number;
+	id: string;
 	title: string;
-	date: Date;
+	description?: string;
+	amount: number;
+	type: "INCOME" | "EXPENSE";
+	category: string;
+	date: string;
+	bankAccountId?: string;
+	bankAccount?: {
+		name: string;
+		institution: string;
+		color: string;
+	};
 }
 
-interface Tab {
-	id: number;
+interface MonthData {
+	month: number;
+	year: number;
 	label: string;
 	transactions: Transaction[];
+	isLoading: boolean;
 }
-
-const currentMonthIndex = new Date().getMonth();
 
 export default function Details() {
 	const { isHidden } = useVisibility();
-	const [currentIndex, setCurrentIndex] = useState<number>(currentMonthIndex);
 	const [filter, setFilter] = useState<"transactions" | "income" | "expense">("transactions");
+	const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+	const [months, setMonths] = useState<MonthData[]>([]);
+	const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+	const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+	const [isLoading, setIsLoading] = useState(true);
+	const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+	const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-	const touchStartX = useRef<number>(0);
-	const touchEndX = useRef<number>(0);
+	useEffect(() => {
+		const generateMonths = () => {
+			const now = new Date();
+			const monthsArray: MonthData[] = [];
 
-	const tabs: Tab[] = [
-		{
-			id: 0,
-			label: "January",
-			transactions: [],
-		},
-		{
-			id: 1,
-			label: "February",
-			transactions: [
-				{ id: 3, type: "income", amount: 2000, title: "Salary", date: new Date("2025-02-01"), category: "salary" },
-				{ id: 4, type: "expense", amount: 800, title: "Lunch", date: new Date("2025-02-01"), category: "food" },
-			],
-		},
-		{
-			id: 2,
-			label: "March",
-			transactions: [
-				{ id: 5, type: "income", amount: 1800, title: "Salary", date: new Date("2025-03-01"), category: "salary" },
-				{ id: 6, type: "expense", amount: 600, title: "Lunch", date: new Date("2025-03-01"), category: "food" },
-			],
-		},
-	];
+			for (let i = 0; i < 12; i++) {
+				const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+				monthsArray.push({
+					month: date.getMonth(),
+					year: date.getFullYear(),
+					label: date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+					transactions: [],
+					isLoading: true
+				});
+			}
 
-	const handleNext = (): void => {
-		if (currentIndex < tabs.length - 1) {
-			setCurrentIndex((prev) => prev + 1);
+			return monthsArray;
+		};
+
+		setMonths(generateMonths());
+	}, []);
+
+	useEffect(() => {
+		if (months.length === 0) return;
+
+		const fetchTransactions = async () => {
+			try {
+				setIsLoading(true);
+				const currentMonthData = months.find(m => m.month === currentMonth && m.year === currentYear);
+
+				if (!currentMonthData) return;
+
+				const response = await fetch(`/api/transactions?month=${currentMonth + 1}&year=${currentYear}`);
+
+				if (!response.ok) throw new Error('Failed to fetch transactions');
+
+				const data = await response.json();
+
+				setMonths(prev => prev.map(month => {
+					if (month.month === currentMonth && month.year === currentYear) {
+						return {
+							...month,
+							transactions: data,
+							isLoading: false
+						};
+					}
+					return month;
+				}));
+
+				setIsLoading(false);
+			} catch (error) {
+				console.error('Error fetching transactions:', error);
+				setIsLoading(false);
+			}
+		};
+
+		fetchTransactions();
+	}, [currentMonth, currentYear, months.length]);
+
+	useEffect(() => {
+		const handleAccountSelected = (event: CustomEvent) => {
+			setSelectedAccountId(event.detail);
+		};
+
+		window.addEventListener('accountSelected' as any, handleAccountSelected);
+
+		return () => {
+			window.removeEventListener('accountSelected' as any, handleAccountSelected);
+		};
+	}, []);
+
+	const getCurrentMonthTransactions = async () => {
+		try {
+			setIsLoading(true);
+			const response = await fetch(`/api/transactions?month=${selectedMonth.getMonth() + 1}&year=${selectedMonth.getFullYear()}`);
+			if (!response.ok) throw new Error('Failed to fetch transactions');
+
+			let data = await response.json();
+
+			if (selectedAccountId) {
+				data = data.filter((transaction: Transaction) => transaction.bankAccountId === selectedAccountId);
+			}
+
+			setTransactions(data);
+		} catch (error) {
+			console.error('Error fetching transactions:', error);
+		} finally {
+			setIsLoading(false);
 		}
 	};
 
-	const handlePrevious = (): void => {
-		if (currentIndex > 0) {
-			setCurrentIndex((prev) => prev - 1);
+	useEffect(() => {
+		getCurrentMonthTransactions();
+	}, [selectedMonth, selectedAccountId]);
+
+	useEffect(() => {
+		const handleTransactionUpdate = () => {
+			getCurrentMonthTransactions();
+		};
+
+		window.addEventListener('transactionUpdated', handleTransactionUpdate);
+
+		return () => {
+			window.removeEventListener('transactionUpdated', handleTransactionUpdate);
+		};
+	}, []);
+
+	const handlePrint = () => {
+		window.print();
+	};
+
+	const handleDownload = async () => {
+		try {
+			const headers = ['Date', 'Title', 'Category', 'Type', 'Amount', 'Account', 'Description'];
+			const rows = transactions.map(transaction => [
+				new Date(transaction.date).toLocaleDateString(),
+				transaction.title,
+				transaction.category,
+				transaction.type,
+				transaction.type === 'EXPENSE' ? `-${transaction.amount}` : transaction.amount.toString(),
+				transaction.bankAccount?.institution || 'N/A',
+				transaction.description || ''
+			]);
+
+			const csvContent = [
+				headers.join(','),
+				...rows.map(row => row.join(','))
+			].join('\n');
+
+			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+			const link = document.createElement('a');
+			const url = URL.createObjectURL(blob);
+			link.setAttribute('href', url);
+			link.setAttribute('download', `transactions-${format(selectedMonth, 'MMMM-yyyy')}.csv`);
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+		} catch (error) {
+			console.error('Error downloading transactions:', error);
 		}
 	};
 
-	const handleTouchStart = (e: TouchEvent<HTMLDivElement>): void => {
-		touchStartX.current = e.touches[0].clientX;
+	const handleNextMonth = () => {
+		if (currentMonth === 0) {
+			setCurrentMonth(11);
+			setCurrentYear(prev => prev - 1);
+		} else {
+			setCurrentMonth(prev => prev - 1);
+		}
 	};
 
-	const handleTouchMove = (e: TouchEvent<HTMLDivElement>): void => {
-		touchEndX.current = e.touches[0].clientX;
+	const handlePreviousMonth = () => {
+		if (currentMonth === 11) {
+			setCurrentMonth(0);
+			setCurrentYear(prev => prev + 1);
+		} else {
+			setCurrentMonth(prev => prev + 1);
+		}
 	};
 
-	const handleTouchEnd = (): void => {
-		const diff = touchStartX.current - touchEndX.current;
-		if (diff > 50) handleNext();
-		if (diff < -50) handlePrevious();
+	const getCategoryIcon = (category: string) => {
+		return categoryIcons[category.toLowerCase()] || categoryIcons.other;
 	};
 
 	return (
 		<section className="rounded-xl bg-gray0 w-full p-7">
-			<div className="mb-7">
-				<Select defaultValue="transactions" onValueChange={(value) => setFilter(value as "transactions" | "income" | "expense")}>
-					<SelectTrigger className="w-[180px]">
-						<SelectValue placeholder="Transactions type" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="transactions"><Image src="/icons/transactions.svg" alt="transactions" width={20} height={20} /> Transactions</SelectItem>
-						<SelectItem value="income"><Image src="/icons/income.svg" alt="income" width={20} height={20} /> Income</SelectItem>
-						<SelectItem value="expense"><Image src="/icons/expenses.svg" alt="expense" width={20} height={20} /> Expenses</SelectItem>
-					</SelectContent>
-				</Select>
+			<div className="flex justify-between items-center mb-7">
+				<div className="flex items-center gap-4">
+					<Select defaultValue="transactions" onValueChange={(value) => setFilter(value as "transactions" | "income" | "expense")}>
+						<SelectTrigger className="w-[180px]">
+							<SelectValue placeholder="Transactions type" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="transactions">
+								<div className="flex items-center gap-2">
+									<Image src="/icons/transactions.svg" alt="transactions" width={20} height={20} />
+									Transactions
+								</div>
+							</SelectItem>
+							<SelectItem value="income">
+								<div className="flex items-center gap-2">
+									<Image src="/icons/income.svg" alt="income" width={20} height={20} />
+									Income
+								</div>
+							</SelectItem>
+							<SelectItem value="expense">
+								<div className="flex items-center gap-2">
+									<Image src="/icons/expenses.svg" alt="expense" width={20} height={20} />
+									Expenses
+								</div>
+							</SelectItem>
+						</SelectContent>
+					</Select>
+					{selectedAccountId && (
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => setSelectedAccountId(null)}
+							className="text-xs h-7"
+						>
+							Clear Account Filter
+						</Button>
+					)}
+				</div>
+				<div className="flex items-center gap-2">
+					<div className="flex gap-4">
+						<Button variant="outline" onClick={handlePrint}>
+							<Printer className="h-5 w-5" />
+						</Button>
+
+						<Button variant="default" onClick={handleDownload}>
+							<FileDown className="h-5 w-5" />
+						</Button>
+					</div>
+				</div>
 			</div>
 
-			<Tabs defaultValue={currentMonthIndex.toString()} className="w-full relative">
-				<TabsList className="md:p-3 w-full flex justify-between overflow-hidden">
-					<button onClick={handlePrevious} className="h-10 w-10 text-neutral-900 hover:text-neutral-800">
+			<div className="w-full relative">
+				<div className="flex justify-between items-center mb-4">
+					<button onClick={handleNextMonth} className="h-10 w-10 text-neutral-900 hover:text-neutral-800">
 						<ChevronLeft className="h-6 w-6" />
 					</button>
-					<div className="flex gap-5">
-						{tabs.map((tab) => (
-							<TabsTrigger key={tab.id} value={tab.id.toString()} className="py-1 px-4">
-								{tab.label}
-							</TabsTrigger>
-						))}
-					</div>
-					<button onClick={handleNext} className="h-10 w-10 text-neutral-900 hover:text-neutral-800">
+					<h2 className="text-lg font-medium">
+						{months.find(m => m.month === currentMonth && m.year === currentYear)?.label || 'Loading...'}
+					</h2>
+					<button onClick={handlePreviousMonth} className="h-10 w-10 text-neutral-900 hover:text-neutral-800">
 						<ChevronRight className="h-6 w-6" />
 					</button>
-				</TabsList>
+				</div>
 
-				{tabs.map((tab) => {
-					const filteredTransactions = tab.transactions.filter((transaction) =>
-						filter === "transactions" ? true : transaction.type === filter
-					);
-
-					return (
-						<TabsContent key={tab.id} value={tab.id.toString()}>
-							{filteredTransactions.length > 0 ? (
-								<table className="w-full border-collapse">
-									<tbody>
-										{filteredTransactions.map((transaction) => (
-											<tr key={transaction.id}>
-												<td className="flex justify-between p-2 bg-white hover:bg-gray-100 rounded-lg my-1">
-													<div className="flex items-center gap-3">
-														<Image src={categoryIcons[transaction.category]} alt={transaction.category} width={40} height={40} />
-														<div>
-															<p>{transaction.title}</p>
-															<p className="text-xs text-neutral-500">{transaction.date.toLocaleDateString()}</p>
-														</div>
-													</div>
-													<p className={clsx(
-														"text-sm p-2 transition-all",
-														transaction.type === "expense" ? "text-red-500" : "text-green-500",
-														{ "blur-sm": isHidden }
-													)}>
-														{transaction.type === "expense" ? "-" : ""}
-														{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(transaction.amount)}
-													</p>
-												</td>
-											</tr>
-										))}
-									</tbody>
-								</table>
-							) : (
-								<div className="flex flex-col items-center justify-center h-full px-5 my-3">
-									<Image src="/empty.svg" alt="empty" width={300} height={300} />
-									<p className="text-center text-gray-500 py-4">No transactions found for this month.</p>
-								</div>
-							)}
-						</TabsContent>
-					);
-				})}
-			</Tabs>
+				{isLoading ? (
+					<div className="flex justify-center items-center h-64">
+						<div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>
+					</div>
+				) : (
+					<div className="w-full">
+						{transactions.length > 0 ? (
+							<div className="space-y-2">
+								{transactions.map((transaction) => (
+									<div key={transaction.id} className="flex justify-between p-3 bg-white hover:bg-gray-100 rounded-lg transition-colors">
+										<div className="flex items-center gap-3">
+											<Image
+												src={getCategoryIcon(transaction.category)}
+												alt={transaction.category}
+												width={40}
+												height={40}
+												className="rounded-full"
+											/>
+											<div>
+												<p className="font-medium">{transaction.title}</p>
+												<p className="text-xs text-neutral-500">{new Date(transaction.date).toLocaleDateString()}</p>
+												{transaction.bankAccount && (
+													<p className="text-xs text-neutral-500">{transaction.bankAccount.institution}</p>
+												)}
+											</div>
+										</div>
+										<p className={clsx(
+											"text-sm p-2 transition-all",
+											transaction.type === "EXPENSE" ? "text-red-500" : "text-green-500",
+											{ "blur-sm": isHidden }
+										)}>
+											{transaction.type === "EXPENSE" ? "-" : "+"}
+											{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(transaction.amount)}
+										</p>
+									</div>
+								))}
+							</div>
+						) : (
+							<div className="flex flex-col items-center justify-center h-64 px-5">
+								<Image src="/empty.svg" alt="empty" width={200} height={200} />
+								<p className="text-center text-gray-500 py-4">No transactions found for this month.</p>
+							</div>
+						)}
+					</div>
+				)}
+			</div>
 		</section>
 	);
 }
