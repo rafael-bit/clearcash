@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -29,15 +29,13 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog'
-import { useRouter } from 'next/navigation'
 import { Plus, Minus, PlusCircle } from 'lucide-react'
 import Image from 'next/image'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 import { Label } from './ui/label'
 import { useModal } from './ModalProvider'
-	import { MoreHorizontal } from 'lucide-react'
+import { MoreHorizontal } from 'lucide-react'
 import { toast } from 'sonner'
-import { useSonner } from 'sonner'
 
 const formSchema = z.object({
 	title: z.string().min(2, {
@@ -173,13 +171,7 @@ export default function AddTransaction() {
 		form.setValue('category', '')
 	}, [transactionType, form])
 
-	useEffect(() => {
-		if (isOpen) {
-			fetchAccounts()
-		}
-	}, [isOpen])
-
-	const fetchAccounts = async () => {
+	const fetchAccounts = useCallback(async () => {
 		try {
 			const response = await fetch('/api/bank-accounts')
 			if (!response.ok) throw new Error('Failed to fetch accounts')
@@ -196,7 +188,13 @@ export default function AddTransaction() {
 		} catch (error) {
 			console.error('Error fetching accounts:', error)
 		}
-	}
+	}, [setShowAccountForm, form])
+
+	useEffect(() => {
+		if (isOpen) {
+			fetchAccounts()
+		}
+	}, [isOpen, fetchAccounts])
 
 	const onSubmit = async (data: z.infer<typeof formSchema>) => {
 		try {
