@@ -3,6 +3,7 @@ import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import { Suspense } from 'react'
 import Loading from "./loading";
+import { ModalProvider } from '@/components/ModalProvider'
 
 const dmsans = DM_Sans({
   variable: "--font-dmsans-mono",
@@ -28,16 +29,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-      <html lang="en">
-        <body
-          className={`${dmsans.variable} antialiased`}
-        >
+    <html lang="en">
+      <body
+        className={`${dmsans.variable} antialiased`}
+      >
+        <ModalProvider>
           <Suspense fallback={<Loading />}>
             <DelayedContent>
               {children}
             </DelayedContent>
           </Suspense>
-        </body>
-      </html>
+        </ModalProvider>
+      </body>
+    </html>
   );
 }
