@@ -15,10 +15,18 @@ export const {
 		signOut: '/auth',
 		error: '/auth',
 		verifyRequest: '/auth',
-		newUser: '/app',
+		newUser: '/dashboard',
 	},
 	secret: process.env.NEXTAUTH_SECRET,
 	adapter: PrismaAdapter(prisma),
+	callbacks: {
+		async redirect({ url, baseUrl }) {
+			if (url === baseUrl || url.startsWith(baseUrl + '/')) {
+				return url.startsWith(baseUrl + '/dashboard') ? url : baseUrl + '/dashboard';
+			}
+			return baseUrl + '/dashboard';
+		},
+	},
 	providers: [
 		EmailProvider({
 			from: process.env.EMAIL_FROM,

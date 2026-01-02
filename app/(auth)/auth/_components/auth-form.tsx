@@ -26,6 +26,7 @@ export default function AuthForm() {
 			await signIn('email', {
 				email: data.email,
 				redirect: false,
+				callbackUrl: '/dashboard',
 			})
 			setIsLoading(false)
 			setSuccess(true)
@@ -44,7 +45,7 @@ export default function AuthForm() {
 		setError('')
 		try {
 			const result = await signIn(provider, {
-				callbackUrl: '/app',
+				callbackUrl: '/dashboard',
 			})
 			if (result?.error) {
 				handleLoginError(result.error, provider)
