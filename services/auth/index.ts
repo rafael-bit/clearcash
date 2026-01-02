@@ -21,8 +21,11 @@ export const {
 	adapter: PrismaAdapter(prisma),
 	callbacks: {
 		async redirect({ url, baseUrl }) {
-			if (url === baseUrl || url.startsWith(baseUrl + '/')) {
-				return url.startsWith(baseUrl + '/dashboard') ? url : baseUrl + '/dashboard';
+			if (url.startsWith(baseUrl)) {
+				return baseUrl + '/dashboard';
+			}
+			if (url.startsWith('/')) {
+				return baseUrl + '/dashboard';
 			}
 			return baseUrl + '/dashboard';
 		},
