@@ -14,6 +14,8 @@ import clsx from "clsx"
 import { useVisibility } from "./VisibilityProvider"
 import { PlusCircle } from 'lucide-react'
 import { useModal } from './ModalProvider'
+import { useLanguage } from './LanguageProvider'
+import { t } from '@/lib/translations'
 
 type BankAccount = {
 	id: string
@@ -28,6 +30,7 @@ type BankAccount = {
 }
 
 export default function MyAccounts() {
+	const { language } = useLanguage()
 	const { openAccountModal } = useModal()
 	const { isHidden } = useVisibility()
 	const [accounts, setAccounts] = useState<BankAccount[]>([])
@@ -91,7 +94,7 @@ export default function MyAccounts() {
 	return (
 		<section className="w-full">
 			<div className="flex justify-between items-center text-white w-full mb-4">
-				<p className="text-lg font-semibold">My accounts</p>
+				<p className="text-lg font-semibold">{t(language, 'My accounts')}</p>
 			</div>
 			{isLoading ? (
 				<div className="flex justify-center items-center h-32">
@@ -139,7 +142,7 @@ export default function MyAccounts() {
 												}).format(account.balance)}
 											</span>
 										</p>
-										<p className="text-xs text-gray-600">Current balance</p>
+										<p className="text-xs text-gray-600">{t(language, 'Current balance')}</p>
 									</div>
 								</Card>
 							</CarouselItem>
@@ -151,7 +154,7 @@ export default function MyAccounts() {
 							>
 								<div className="flex flex-col items-center text-white">
 									<PlusCircle size={40} />
-									<p className="mt-2">Add Account</p>
+									<p className="mt-2">{t(language, 'Add Account')}</p>
 								</div>
 							</Card>
 						</CarouselItem>
@@ -164,7 +167,7 @@ export default function MyAccounts() {
 				>
 					<div className="flex flex-col items-center text-white">
 						<PlusCircle size={40} />
-						<p className="mt-2">Add Your First Account</p>
+						<p className="mt-2">{t(language, 'Add Your First Account')}</p>
 					</div>
 				</Card>
 			)}

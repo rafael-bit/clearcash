@@ -5,6 +5,8 @@ import MyAccounts from '@/components/MyAccounts'
 import clsx from "clsx"
 import { useVisibility } from './VisibilityProvider'
 import { useState, useEffect } from 'react'
+import { useLanguage } from './LanguageProvider'
+import { t } from '@/lib/translations'
 
 type BankAccount = {
 	id: string
@@ -17,6 +19,7 @@ type BankAccount = {
 }
 
 export default function BalanceCard() {
+	const { language } = useLanguage()
 	const { isHidden, toggleVisibility } = useVisibility()
 	const [totalBalance, setTotalBalance] = useState(0)
 	const [isLoading, setIsLoading] = useState(true)
@@ -39,12 +42,23 @@ export default function BalanceCard() {
 		}
 
 		fetchAccounts()
+
+		// Listener para atualizar quando contas são atualizadas
+		const handleAccountUpdate = () => {
+			fetchAccounts()
+		}
+
+		window.addEventListener('accountUpdated', handleAccountUpdate)
+
+		return () => {
+			window.removeEventListener('accountUpdated', handleAccountUpdate)
+		}
 	}, [])
 
 	return (
 		<div className="flex flex-col justify-between w-full md:w-1/2 h-[85vh] py-6 px-4 rounded-xl bg-teal9">
 			<div>
-				<p className="text-white">Total balance</p>
+				<p className="text-white">{t(language, 'Total balance')}</p>
 				<h1 className="mt-2 flex items-center gap-4 text-white text-3xl font-semibold">
 					{isLoading ? (
 						<div className="animate-pulse bg-white/20 h-8 w-32 rounded"></div>

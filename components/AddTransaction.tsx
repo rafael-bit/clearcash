@@ -36,6 +36,8 @@ import { Label } from './ui/label'
 import { useModal } from './ModalProvider'
 import { MoreHorizontal } from 'lucide-react'
 import { toast } from 'sonner'
+import { useLanguage } from './LanguageProvider'
+import { t } from '@/lib/translations'
 
 const formSchema = z.object({
 	title: z.string().min(2, {
@@ -93,25 +95,25 @@ type AccountTypeOption = {
 	icon: string
 }
 
-const categoryOptions: Record<'INCOME' | 'EXPENSE', Category[]> = {
+const getCategoryOptions = (language: 'pt' | 'en'): Record<'INCOME' | 'EXPENSE', Category[]> => ({
 	INCOME: [
-		{ value: 'salary', label: 'Salary', icon: '/icons/incomeColor.svg' },
-		{ value: 'investment', label: 'Investment', icon: '/icons/investiments.svg' },
-		{ value: 'other', label: 'Other', icon: '/icons/incomeColor.svg' },
+		{ value: 'salary', label: t(language, 'Salary'), icon: '/icons/incomeColor.svg' },
+		{ value: 'investment', label: t(language, 'Investment'), icon: '/icons/investiments.svg' },
+		{ value: 'other', label: t(language, 'Other'), icon: '/icons/incomeColor.svg' },
 	],
 	EXPENSE: [
-		{ value: 'food', label: 'Food', icon: '/icons/food.svg' },
-		{ value: 'home', label: 'Home', icon: '/icons/house.svg' },
-		{ value: 'education', label: 'Education', icon: '/icons/education.svg' },
-		{ value: 'leisure', label: 'Leisure', icon: '/icons/leisure.svg' },
-		{ value: 'market', label: 'Market', icon: '/icons/market.svg' },
-		{ value: 'clothing', label: 'Clothing', icon: '/icons/clothing.svg' },
-		{ value: 'health', label: 'Health', icon: '/icons/health.svg' },
-		{ value: 'transport', label: 'Transport', icon: '/icons/transport.svg' },
-		{ value: 'travel', label: 'Travel', icon: '/icons/travel.svg' },
-		{ value: 'other', label: 'Other', icon: '/icons/expensesColor.svg' },
+		{ value: 'food', label: t(language, 'Food'), icon: '/icons/food.svg' },
+		{ value: 'home', label: t(language, 'Home'), icon: '/icons/house.svg' },
+		{ value: 'education', label: t(language, 'Education'), icon: '/icons/education.svg' },
+		{ value: 'leisure', label: t(language, 'Leisure'), icon: '/icons/leisure.svg' },
+		{ value: 'market', label: t(language, 'Market'), icon: '/icons/market.svg' },
+		{ value: 'clothing', label: t(language, 'Clothing'), icon: '/icons/clothing.svg' },
+		{ value: 'health', label: t(language, 'Health'), icon: '/icons/health.svg' },
+		{ value: 'transport', label: t(language, 'Transport'), icon: '/icons/transport.svg' },
+		{ value: 'travel', label: t(language, 'Travel'), icon: '/icons/travel.svg' },
+		{ value: 'other', label: t(language, 'Other'), icon: '/icons/expensesColor.svg' },
 	],
-}
+})
 
 const accountTypeOptions: AccountTypeOption[] = [
 	{ value: 'BANK', label: 'Bank Account', icon: '/icons/cardGray.svg' },
@@ -130,6 +132,7 @@ const colorOptions: string[] = [
 ]
 
 export default function AddTransaction() {
+	const { language } = useLanguage()
 	const {
 		isOpen,
 		setIsOpen,
@@ -256,9 +259,9 @@ export default function AddTransaction() {
 			<Dialog open={isOpen} onOpenChange={setIsOpen}>
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader>
-						<DialogTitle>Add Transaction</DialogTitle>
+						<DialogTitle>{t(language, 'Add Transaction')}</DialogTitle>
 						<DialogDescription>
-							Record a new transaction to keep track of your finances.
+							{t(language, 'Record a new transaction to keep track of your finances.')}
 						</DialogDescription>
 					</DialogHeader>
 
@@ -269,7 +272,7 @@ export default function AddTransaction() {
 								name="type"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Transaction Type</FormLabel>
+										<FormLabel>{t(language, 'Transaction Type')}</FormLabel>
 										<FormControl>
 											<RadioGroup
 												onValueChange={field.onChange}
@@ -280,14 +283,14 @@ export default function AddTransaction() {
 													<RadioGroupItem value="EXPENSE" id="expense" className="text-red-500 sr-only" />
 													<Label htmlFor="expense" className="flex items-center cursor-pointer text-red-500">
 														<Minus className="h-4 w-4 mr-1" />
-														Expense
+														{t(language, 'Expense')}
 													</Label>
 												</div>
 												<div className="flex items-center space-x-2 bg-green-100 p-2 rounded-r-md flex-1 justify-center">
 													<RadioGroupItem value="INCOME" id="income" className="text-green-500 sr-only" />
 													<Label htmlFor="income" className="flex items-center cursor-pointer text-green-500">
 														<Plus className="h-4 w-4 mr-1" />
-														Income
+														{t(language, 'Income')}
 													</Label>
 												</div>
 											</RadioGroup>
@@ -302,9 +305,9 @@ export default function AddTransaction() {
 									name="title"
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>Title</FormLabel>
+											<FormLabel>{t(language, 'Title')}</FormLabel>
 											<FormControl>
-												<Input placeholder="e.g. Grocery Shopping" {...field} />
+												<Input placeholder={t(language, 'Title')} {...field} />
 											</FormControl>
 											<FormMessage />
 										</FormItem>
@@ -316,7 +319,7 @@ export default function AddTransaction() {
 									name="amount"
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>Amount</FormLabel>
+											<FormLabel>{t(language, 'Amount')}</FormLabel>
 											<FormControl>
 												<Input type="number" step="0.01" placeholder="0.00" {...field} />
 											</FormControl>
@@ -330,12 +333,12 @@ export default function AddTransaction() {
 								control={form.control}
 								name="category"
 								render={({ field }) => {
-									const categories = categoryOptions[transactionType];
+									const categories = getCategoryOptions(language)[transactionType];
 									const visibleCategories = showAll ? categories : categories.slice(0, 7);
 
 									return (
 										<FormItem>
-											<FormLabel>Category</FormLabel>
+											<FormLabel>{t(language, 'Category')}</FormLabel>
 											<FormControl>
 												<div className="grid grid-cols-4 gap-2">
 													{visibleCategories.map((category) => (
@@ -379,7 +382,7 @@ export default function AddTransaction() {
 										className="text-xs flex items-center h-6 py-1 px-2"
 									>
 										<PlusCircle className="h-3 w-3 mr-1" />
-										Add Account
+										{t(language, 'Add Account')}
 									</Button>
 								</div>
 
@@ -425,7 +428,7 @@ export default function AddTransaction() {
 								name="date"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Date</FormLabel>
+										<FormLabel>{t(language, 'Date')}</FormLabel>
 										<FormControl>
 											<Input type="date" {...field} />
 										</FormControl>
@@ -436,10 +439,10 @@ export default function AddTransaction() {
 
 							<DialogFooter>
 								<Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
-									Cancel
+									{t(language, 'Cancel')}
 								</Button>
 								<Button type="submit" disabled={isSubmitting || accounts.length === 0}>
-									{isSubmitting ? 'Saving...' : 'Save Transaction'}
+									{isSubmitting ? t(language, 'Saving...') : t(language, 'Save Transaction')}
 								</Button>
 							</DialogFooter>
 						</form>
@@ -450,9 +453,9 @@ export default function AddTransaction() {
 			<Dialog open={isAccountModalOpen} onOpenChange={setIsAccountModalOpen}>
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader>
-						<DialogTitle>Add Account</DialogTitle>
+						<DialogTitle>{t(language, 'Add Account')}</DialogTitle>
 						<DialogDescription>
-							Create a new account to manage your finances.
+							{t(language, 'Create a new account to manage your finances.')}
 						</DialogDescription>
 					</DialogHeader>
 
@@ -463,7 +466,7 @@ export default function AddTransaction() {
 								name="type"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Account Type</FormLabel>
+										<FormLabel>{t(language, 'Account Type')}</FormLabel>
 										<FormControl>
 											<RadioGroup
 												onValueChange={field.onChange}
@@ -494,9 +497,9 @@ export default function AddTransaction() {
 									name="name"
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>Account Name</FormLabel>
+											<FormLabel>{t(language, 'Account Name')}</FormLabel>
 											<FormControl>
-												<Input placeholder="e.g. My Checking Account" {...field} />
+												<Input placeholder={t(language, 'Account Name')} {...field} />
 											</FormControl>
 											<FormMessage />
 										</FormItem>
@@ -508,9 +511,9 @@ export default function AddTransaction() {
 									name="institution"
 									render={({ field }) => (
 										<FormItem>
-											<FormLabel>Institution</FormLabel>
+											<FormLabel>{t(language, 'Institution')}</FormLabel>
 											<FormControl>
-												<Input placeholder="e.g. Chase Bank" {...field} />
+												<Input placeholder={t(language, 'Institution')} {...field} />
 											</FormControl>
 											<FormMessage />
 										</FormItem>
@@ -523,7 +526,7 @@ export default function AddTransaction() {
 								name="balance"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Current Balance</FormLabel>
+										<FormLabel>{t(language, 'Current Balance')}</FormLabel>
 										<FormControl>
 											<Input type="number" step="0.01" placeholder="0.00" {...field} />
 										</FormControl>
@@ -537,11 +540,11 @@ export default function AddTransaction() {
 								name="currency"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Currency</FormLabel>
+										<FormLabel>{t(language, 'Currency')}</FormLabel>
 										<Select onValueChange={field.onChange} defaultValue={field.value}>
 											<FormControl>
 												<SelectTrigger>
-													<SelectValue placeholder="Select currency" />
+													<SelectValue placeholder={t(language, 'Select currency')} />
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent>
@@ -562,7 +565,7 @@ export default function AddTransaction() {
 								name="color"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Account Color</FormLabel>
+										<FormLabel>{t(language, 'Account Color')}</FormLabel>
 										<FormControl>
 											<div className="flex flex-wrap gap-2">
 												{colorOptions.map((color) => (
@@ -588,10 +591,10 @@ export default function AddTransaction() {
 										setIsOpen(false)
 									}
 								}}>
-									Cancel
+									{t(language, 'Cancel')}
 								</Button>
 								<Button type="submit" disabled={isSubmitting}>
-									{isSubmitting ? 'Creating...' : 'Create Account'}
+									{isSubmitting ? t(language, 'Creating...') : t(language, 'Create Account')}
 								</Button>
 							</DialogFooter>
 						</form>

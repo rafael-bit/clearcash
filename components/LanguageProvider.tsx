@@ -15,7 +15,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 	const [language, setLanguageState] = useState<Language>('pt')
 
 	useEffect(() => {
-		// Carrega o idioma salvo do localStorage
 		const savedLanguage = localStorage.getItem('language') as Language
 		if (savedLanguage === 'pt' || savedLanguage === 'en') {
 			setLanguageState(savedLanguage)
@@ -25,12 +24,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 	const setLanguage = (lang: Language) => {
 		setLanguageState(lang)
 		localStorage.setItem('language', lang)
-		// Atualiza o atributo lang do HTML
 		document.documentElement.lang = lang
 	}
 
 	useEffect(() => {
-		// Atualiza o atributo lang do HTML quando o idioma muda
 		document.documentElement.lang = language
 	}, [language])
 
