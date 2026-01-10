@@ -5,7 +5,7 @@ import { Prisma } from '@prisma/client';
 
 export async function DELETE(
 	request: Request,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	const session = await auth();
 
@@ -14,8 +14,9 @@ export async function DELETE(
 	}
 
 	try {
+		const { id } = await params;
 		const transaction = await prisma.transaction.findUnique({
-			where: { id: params.id },
+			where: { id },
 			include: { bankAccount: true },
 		});
 
@@ -35,7 +36,7 @@ export async function DELETE(
 
 			await prisma.$transaction(async (tx) => {
 				await tx.transaction.delete({
-					where: { id: params.id },
+					where: { id },
 				});
 
 				await tx.bankAccount.update({
@@ -45,7 +46,7 @@ export async function DELETE(
 			});
 		} else {
 			await prisma.transaction.delete({
-				where: { id: params.id },
+				where: { id },
 			});
 		}
 
@@ -58,7 +59,7 @@ export async function DELETE(
 
 export async function PUT(
 	request: Request,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	const session = await auth();
 
@@ -67,8 +68,9 @@ export async function PUT(
 	}
 
 	try {
+		const { id } = await params;
 		const transaction = await prisma.transaction.findUnique({
-			where: { id: params.id },
+			where: { id },
 			include: { bankAccount: true },
 		});
 
@@ -120,7 +122,7 @@ export async function PUT(
 
 			// Atualizar a transação
 			const updatedTransaction = await tx.transaction.update({
-				where: { id: params.id },
+				where: { id },
 				data: updateData,
 				include: {
 					bankAccount: true,
@@ -150,7 +152,7 @@ export async function PUT(
 		});
 
 		const updatedTransaction = await prisma.transaction.findUnique({
-			where: { id: params.id },
+			where: { id },
 			include: { bankAccount: true },
 		});
 
