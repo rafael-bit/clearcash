@@ -12,6 +12,15 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select"
+import { useLanguage } from "@/components/LanguageProvider"
+import { Label } from "@/components/ui/label"
 
 
 type Props = {
@@ -19,6 +28,8 @@ type Props = {
 }
 
 export default function UserInfo({ user }: Props) {
+	const { language, setLanguage } = useLanguage()
+
 	if (!user) { return <h1>User Not Found</h1> }
 
 	const nameParts = user?.name?.split(' ') || [];
@@ -42,7 +53,25 @@ export default function UserInfo({ user }: Props) {
 					<DialogTitle>{user?.name}</DialogTitle>
 					<DialogDescription>{user?.email}</DialogDescription>
 				</DialogHeader>
-				<Button className="bg-green-800 hover:bg-green-700 transition-all duration-300" onClick={() => signOut()}>Sign Out</Button>
+				<div className="space-y-4">
+					<div className="space-y-2">
+						<Label htmlFor="language-select">
+							{language === 'pt' ? 'Idioma' : 'Language'}
+						</Label>
+						<Select value={language} onValueChange={(value) => setLanguage(value as 'pt' | 'en')}>
+							<SelectTrigger id="language-select" className="w-full">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="pt">Português</SelectItem>
+								<SelectItem value="en">English</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+					<Button className="bg-green-800 hover:bg-green-700 transition-all duration-300 w-full" onClick={() => signOut()}>
+						{language === 'pt' ? 'Sair' : 'Sign Out'}
+					</Button>
+				</div>
 			</DialogContent>
 		</Dialog>
 	)

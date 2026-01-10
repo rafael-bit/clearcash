@@ -4,6 +4,7 @@ import "./globals.css";
 import { Suspense } from 'react'
 import Loading from "./loading";
 import { ModalProvider } from '@/components/ModalProvider'
+import { LanguageProvider } from '@/components/LanguageProvider'
 
 const dmsans = DM_Sans({
   variable: "--font-dmsans-mono",
@@ -33,13 +34,15 @@ export default function RootLayout({
       <body
         className={`${dmsans.variable} antialiased`}
       >
-        <ModalProvider>
-          <Suspense fallback={<Loading />}>
-            <DelayedContent>
-              {children}
-            </DelayedContent>
-          </Suspense>
-        </ModalProvider>
+        <LanguageProvider>
+          <ModalProvider>
+            <Suspense fallback={<Loading />}>
+              <DelayedContent>
+                {children}
+              </DelayedContent>
+            </Suspense>
+          </ModalProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
