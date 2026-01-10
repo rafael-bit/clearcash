@@ -121,16 +121,6 @@ const accountTypeOptions: AccountTypeOption[] = [
 	{ value: 'WALLET', label: 'Wallet', icon: '/icons/wallet.svg' },
 ]
 
-const colorOptions: string[] = [
-	'#0ea5e9', // blue
-	'#10b981', // green
-	'#f59e0b', // yellow
-	'#ef4444', // red
-	'#8b5cf6', // purple
-	'#ec4899', // pink
-	'#000000', // black
-]
-
 export default function AddTransaction() {
 	const { language } = useLanguage()
 	const {
@@ -567,16 +557,23 @@ export default function AddTransaction() {
 									<FormItem>
 										<FormLabel>{t(language, 'Account Color')}</FormLabel>
 										<FormControl>
-											<div className="flex flex-wrap gap-2">
-												{colorOptions.map((color) => (
-													<div
-														key={color}
-														onClick={() => accountForm.setValue('color', color)}
-														className={`w-8 h-8 rounded-full cursor-pointer border-2 ${field.value === color ? 'border-black' : 'border-transparent'
-															}`}
-														style={{ backgroundColor: color }}
+											<div className="flex items-center gap-4">
+												<div className="relative">
+													<input
+														type="color"
+														value={field.value}
+														onChange={(e) => field.onChange(e.target.value)}
+														className="w-16 h-16 rounded-lg cursor-pointer border-2 border-gray-300"
+														style={{ backgroundColor: field.value }}
 													/>
-												))}
+												</div>
+												<div className="flex flex-col gap-1">
+													<p className="text-sm text-gray-600">{field.value}</p>
+													<div 
+														className="w-24 h-8 rounded border-2 border-gray-300"
+														style={{ backgroundColor: field.value }}
+													/>
+												</div>
 											</div>
 										</FormControl>
 										<FormMessage />

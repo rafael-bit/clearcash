@@ -34,6 +34,7 @@ import Image from "next/image";
 import clsx from "clsx";
 import { useVisibility } from "./VisibilityProvider";
 import { format } from "date-fns";
+import { ptBR, enUS } from "date-fns/locale";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -133,8 +134,10 @@ export default function Details() {
 	});
 
 	const getCurrentMonthLabel = useCallback(() => {
-		return format(new Date(currentYear, currentMonth), 'MMMM yyyy');
-	}, [currentMonth, currentYear]);
+		return format(new Date(currentYear, currentMonth), 'MMMM yyyy', {
+			locale: language === 'pt' ? ptBR : enUS
+		});
+	}, [currentMonth, currentYear, language]);
 
 	const fetchTransactions = useCallback(async () => {
 		try {
@@ -199,7 +202,9 @@ export default function Details() {
 		try {
 			const headers = ['Date', 'Title', 'Category', 'Type', 'Amount', 'Account', 'Description'];
 			const rows = transactions.map(transaction => [
-				new Date(transaction.date).toLocaleDateString(),
+				format(new Date(transaction.date), 'dd/MM/yyyy', {
+					locale: language === 'pt' ? ptBR : enUS
+				}),
 				transaction.title,
 				transaction.category,
 				transaction.type,
@@ -217,7 +222,9 @@ export default function Details() {
 			const link = document.createElement('a');
 			const url = URL.createObjectURL(blob);
 			link.setAttribute('href', url);
-			link.setAttribute('download', `transactions-${format(new Date(currentYear, currentMonth), 'MMMM-yyyy')}.csv`);
+			link.setAttribute('download', `transactions-${format(new Date(currentYear, currentMonth), 'MMMM-yyyy', {
+				locale: language === 'pt' ? ptBR : enUS
+			})}.csv`);
 			document.body.appendChild(link);
 			link.click();
 			document.body.removeChild(link);
@@ -401,7 +408,11 @@ export default function Details() {
 											/>
 											<div className="flex-1">
 												<p className="font-medium">{transaction.title}</p>
-												<p className="text-xs text-neutral-500">{new Date(transaction.date).toLocaleDateString()}</p>
+												<p className="text-xs text-neutral-500">
+													{format(new Date(transaction.date), 'dd/MM/yyyy', {
+														locale: language === 'pt' ? ptBR : enUS
+													})}
+												</p>
 												{transaction.bankAccount && (
 													<p className="text-xs text-neutral-500">{transaction.bankAccount.institution}</p>
 												)}
