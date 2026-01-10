@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/services/auth';
 import { prisma } from '@/services/database';
+import { Prisma } from '@prisma/client';
 
 export async function DELETE(
 	request: Request,
@@ -95,7 +96,7 @@ export async function PUT(
 			}
 
 			// Preparar dados de atualização
-			const updateData: any = {
+			const updateData: Prisma.TransactionUpdateInput = {
 				title,
 				description: description || null,
 				amount: parseFloat(amount),
