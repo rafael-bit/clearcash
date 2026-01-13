@@ -26,6 +26,8 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.5.2",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.0.0",
     "lucide-react": "^0.477.0",
     "next": "15.2.8",
     "next-auth": "5.0.0-beta.25",

@@ -59,6 +59,9 @@ export const translations = {
 		'Select currency': 'Selecionar moeda',
 		'Saving...': 'Salvando...',
 		'Save Transaction': 'Salvar Transação',
+		'Generate PDF': 'Gerar PDF',
+		'Download CSV': 'Baixar CSV',
+		'Account': 'Conta',
 	},
 	en: {
 		'My accounts': 'My accounts',
@@ -120,6 +123,9 @@ export const translations = {
 		'Select currency': 'Select currency',
 		'Saving...': 'Saving...',
 		'Save Transaction': 'Save Transaction',
+		'Generate PDF': 'Generate PDF',
+		'Download CSV': 'Download CSV',
+		'Account': 'Account',
 	},
 } as const;
 

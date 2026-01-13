@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { FileDown, Printer, Edit, Trash2 } from "lucide-react";
+import { FileDown, FileText, Edit, Trash2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -41,6 +41,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { useLanguage } from "./LanguageProvider";
 import { t } from "@/lib/translations";
+import jsPDF from "jspdf";
 
 const categoryIcons: Record<string, string> = {
 	food: "/icons/food.svg",
@@ -194,8 +195,143 @@ export default function Details() {
 		};
 	}, []);
 
-	const handlePrint = () => {
-		window.print();
+	const handleGeneratePDF = async () => {
+		try {
+			const doc = new jsPDF();
+			const locale = language === 'pt' ? ptBR : enUS;
+			
+			// Título
+			doc.setFontSize(18);
+			doc.text(t(language, 'Transactions'), 14, 20);
+			
+			// Período
+			doc.setFontSize(12);
+			const monthLabel = format(new Date(currentYear, currentMonth), 'MMMM yyyy', { locale });
+			doc.text(monthLabel, 14, 30);
+			
+			// Cabeçalho da tabela
+			doc.setFontSize(10);
+			let yPos = 45;
+			const startX = 14;
+			const colWidths = [30, 50, 30, 25, 35, 30];
+			const headers = [
+				t(language, 'Date'),
+				t(language, 'Title'),
+				t(language, 'Category'),
+				t(language, 'Type'),
+				t(language, 'Amount'),
+				t(language, 'Account')
+			];
+			
+			// Desenhar cabeçalho
+			doc.setFillColor(240, 240, 240);
+			doc.rect(startX, yPos - 5, 180, 8, 'F');
+			doc.setTextColor(0, 0, 0);
+			doc.setFont('helvetica', 'bold');
+			
+			let xPos = startX;
+			headers.forEach((header, index) => {
+				doc.text(header, xPos, yPos);
+				xPos += colWidths[index];
+			});
+			
+			// Linhas das transações
+			doc.setFont('helvetica', 'normal');
+			doc.setTextColor(0, 0, 0);
+			yPos += 10;
+			
+			transactions.forEach((transaction, index) => {
+				// Verificar se precisa de nova página
+				if (yPos > 280) {
+					doc.addPage();
+					yPos = 20;
+				}
+				
+				const dateStr = format(new Date(transaction.date), 'dd/MM/yyyy', { locale });
+				const typeStr = transaction.type === 'INCOME' ? t(language, 'Income') : t(language, 'Expenses');
+				const amountStr = transaction.type === 'EXPENSE' 
+					? `-${new Intl.NumberFormat(language === 'pt' ? 'pt-BR' : 'en-US', { 
+						style: 'currency', 
+						currency: 'USD' 
+					}).format(transaction.amount)}`
+					: `+${new Intl.NumberFormat(language === 'pt' ? 'pt-BR' : 'en-US', { 
+						style: 'currency', 
+						currency: 'USD' 
+					}).format(transaction.amount)}`;
+				
+				const accountStr = transaction.bankAccount?.institution || 'N/A';
+				
+				// Alternar cor de fundo
+				if (index % 2 === 0) {
+					doc.setFillColor(250, 250, 250);
+					doc.rect(startX, yPos - 5, 180, 7, 'F');
+				}
+				
+				// Desenhar linha
+				doc.setDrawColor(200, 200, 200);
+				doc.line(startX, yPos - 5, startX + 180, yPos - 5);
+				
+				// Texto da transação
+				xPos = startX;
+				const rowData = [
+					dateStr,
+					transaction.title.length > 20 ? transaction.title.substring(0, 20) + '...' : transaction.title,
+					transaction.category.length > 15 ? transaction.category.substring(0, 15) + '...' : transaction.category,
+					typeStr,
+					amountStr,
+					accountStr.length > 15 ? accountStr.substring(0, 15) + '...' : accountStr
+				];
+				
+				rowData.forEach((data, colIndex) => {
+					doc.text(data, xPos, yPos);
+					xPos += colWidths[colIndex];
+				});
+				
+				yPos += 7;
+			});
+			
+			// Totais
+			if (transactions.length > 0) {
+				yPos += 5;
+				doc.setDrawColor(0, 0, 0);
+				doc.line(startX, yPos, startX + 180, yPos);
+				yPos += 10;
+				
+				const totalIncome = transactions
+					.filter(t => t.type === 'INCOME')
+					.reduce((sum, t) => sum + t.amount, 0);
+				const totalExpense = transactions
+					.filter(t => t.type === 'EXPENSE')
+					.reduce((sum, t) => sum + t.amount, 0);
+				const balance = totalIncome - totalExpense;
+				
+				doc.setFont('helvetica', 'bold');
+				doc.text(`${t(language, 'Income')}: ${new Intl.NumberFormat(language === 'pt' ? 'pt-BR' : 'en-US', { 
+					style: 'currency', 
+					currency: 'USD' 
+				}).format(totalIncome)}`, startX, yPos);
+				yPos += 7;
+				doc.text(`${t(language, 'Expenses')}: ${new Intl.NumberFormat(language === 'pt' ? 'pt-BR' : 'en-US', { 
+					style: 'currency', 
+					currency: 'USD' 
+				}).format(totalExpense)}`, startX, yPos);
+				yPos += 7;
+				doc.setFont('helvetica', 'bold');
+				doc.text(`${t(language, 'Balance')}: ${new Intl.NumberFormat(language === 'pt' ? 'pt-BR' : 'en-US', { 
+					style: 'currency', 
+					currency: 'USD' 
+				}).format(balance)}`, startX, yPos);
+			}
+			
+			// Salvar PDF
+			const fileName = `transactions-${format(new Date(currentYear, currentMonth), 'MMMM-yyyy', { locale }).toLowerCase()}.pdf`;
+			doc.save(fileName);
+			
+			toast.success(language === 'pt' ? 'PDF gerado com sucesso!' : 'PDF generated successfully!');
+		} catch (error) {
+			console.error('Error generating PDF:', error);
+			toast.error(language === 'pt' ? 'Erro ao gerar PDF' : 'Error generating PDF');
+		}
 	};
 
 	const handleDownload = async () => {
@@ -364,12 +500,14 @@ export default function Details() {
 				</div>
 				<div className="flex items-center gap-2">
 					<div className="flex gap-4">
-						<Button variant="outline" onClick={handlePrint}>
-							<Printer className="h-5 w-5" />
+						<Button variant="outline" onClick={handleGeneratePDF}>
+							<FileText className="h-5 w-5 mr-2" />
+							{t(language, 'Generate PDF')}
 						</Button>
 
 						<Button variant="default" onClick={handleDownload}>
-							<FileDown className="h-5 w-5" />
+							<FileDown className="h-5 w-5 mr-2" />
+							{t(language, 'Download CSV')}
 						</Button>
 					</div>
 				</div>
