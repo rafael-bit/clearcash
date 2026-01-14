@@ -17,7 +17,7 @@ export async function DELETE(
 		const { id } = await params;
 		const transaction = await prisma.transaction.findUnique({
 			where: { id },
-			include: { bankAccount: true },
+			include: { bankAccount: true, documents: true },
 		});
 
 		if (!transaction) {
@@ -71,7 +71,7 @@ export async function PUT(
 		const { id } = await params;
 		const transaction = await prisma.transaction.findUnique({
 			where: { id },
-			include: { bankAccount: true },
+			include: { bankAccount: true, documents: true },
 		});
 
 		if (!transaction) {
@@ -82,7 +82,7 @@ export async function PUT(
 			return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 		}
 
-		const { title, description, amount, type, category, date, bankAccountId } = await request.json();
+		const { title, description, amount, type, category, date, bankAccountId, documents } = await request.json();
 
 		await prisma.$transaction(async (tx) => {
 			// Reverter o saldo antigo se havia uma conta vinculada
@@ -120,12 +120,33 @@ export async function PUT(
 				};
 			}
 
+			// Gerenciar documentos
+			if (documents !== undefined) {
+				// Remover documentos existentes
+				await tx.document.deleteMany({
+					where: { transactionId: id },
+				});
+
+				// Adicionar novos documentos se fornecidos
+				if (Array.isArray(documents) && documents.length > 0) {
+					await tx.document.createMany({
+						data: documents.map((doc: { url: string; fileName: string; mimeType: string }) => ({
+							url: doc.url,
+							fileName: doc.fileName,
+							mimeType: doc.mimeType,
+							transactionId: id,
+						})),
+					});
+				}
+			}
+
 			// Atualizar a transação
 			const updatedTransaction = await tx.transaction.update({
 				where: { id },
 				data: updateData,
 				include: {
 					bankAccount: true,
+					documents: true,
 				},
 			});
 
@@ -153,7 +174,7 @@ export async function PUT(
 
 		const updatedTransaction = await prisma.transaction.findUnique({
 			where: { id },
-			include: { bankAccount: true },
+			include: { bankAccount: true, documents: true },
 		});
 
 		return NextResponse.json(updatedTransaction);

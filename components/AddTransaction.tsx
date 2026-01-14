@@ -29,7 +29,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog'
-import { Plus, Minus, PlusCircle } from 'lucide-react'
+import { Plus, Minus, PlusCircle, X, Upload, FileText } from 'lucide-react'
 import Image from 'next/image'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 import { Label } from './ui/label'
@@ -38,6 +38,7 @@ import { MoreHorizontal } from 'lucide-react'
 import { toast } from 'sonner'
 import { useLanguage } from './LanguageProvider'
 import { t } from '@/lib/translations'
+import { normalizeDocumentUrl } from '@/lib/document-url'
 
 const formSchema = z.object({
 	title: z.string().min(2, {
@@ -134,6 +135,8 @@ export default function AddTransaction() {
 	const [accounts, setAccounts] = useState<BankAccount[]>([])
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [showAll, setShowAll] = useState(false)
+	const [documents, setDocuments] = useState<Array<{ url: string; fileName: string; mimeType: string }>>([])
+	const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set())
 
 	const form = useForm<TransactionFormValues>({
 		resolver: zodResolver(formSchema),
@@ -189,6 +192,53 @@ export default function AddTransaction() {
 		}
 	}, [isOpen, fetchAccounts])
 
+	const handleFileUpload = async (file: File) => {
+		const fileId = `${Date.now()}-${Math.random()}`;
+		setUploadingFiles((prev) => new Set(prev).add(fileId));
+
+		try {
+			const formData = new FormData();
+			formData.append('file', file);
+
+			const uploadResponse = await fetch('/api/upload', {
+				method: 'POST',
+				body: formData,
+			});
+
+			if (!uploadResponse.ok) {
+				const error = await uploadResponse.json();
+				throw new Error(error.error || 'Failed to upload file');
+			}
+
+			const { url, fileName, mimeType } = await uploadResponse.json();
+
+			// Adicionar documento à lista
+			setDocuments((prev) => [
+				...prev,
+				{
+					url,
+					fileName,
+					mimeType,
+				},
+			]);
+
+			toast.success(t(language, 'File uploaded successfully.'));
+		} catch (error) {
+			console.error('Error uploading file:', error);
+			toast.error(error instanceof Error ? error.message : t(language, 'Failed to upload file. Please try again.'));
+		} finally {
+			setUploadingFiles((prev) => {
+				const next = new Set(prev);
+				next.delete(fileId);
+				return next;
+			});
+		}
+	};
+
+	const removeDocument = (index: number) => {
+		setDocuments((prev) => prev.filter((_, i) => i !== index));
+	};
+
 	const onSubmit = async (data: z.infer<typeof formSchema>) => {
 		try {
 			setIsSubmitting(true);
@@ -197,20 +247,24 @@ export default function AddTransaction() {
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify(data),
+				body: JSON.stringify({
+					...data,
+					documents: documents.length > 0 ? documents : undefined,
+				}),
 			});
 
 			if (!response.ok) throw new Error('Failed to create transaction');
 
-			toast.success("Transaction created successfully.")
+			toast.success(t(language, 'Transaction created successfully.'))
 
 			form.reset();
+			setDocuments([]);
 			setIsOpen(false);
 			window.dispatchEvent(new Event('transactionUpdated'));
 			window.dispatchEvent(new Event('accountUpdated'));
 		} catch (error) {
 			console.error('Error creating transaction:', error);
-			toast.error("Failed to create transaction. Please try again.")
+			toast.error(t(language, 'Failed to create transaction. Please try again.'))
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -231,14 +285,14 @@ export default function AddTransaction() {
 
 			if (!response.ok) throw new Error('Failed to create account');
 
-			toast.success("Account created successfully.")
+			toast.success(t(language, 'Account created successfully.'))
 
 			accountForm.reset();
 			setShowAccountForm(false);
 			window.dispatchEvent(new Event('accountUpdated'));
 		} catch (error) {
 			console.error('Error creating account:', error);
-			toast.error("Failed to create account. Please try again.")
+			toast.error(t(language, 'Failed to create account. Please try again.'))
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -350,7 +404,7 @@ export default function AddTransaction() {
 															className="flex flex-col items-center justify-center p-2 border rounded-md cursor-pointer bg-gray-100 hover:bg-gray-200"
 														>
 															<MoreHorizontal className="h-6 w-6 text-gray-600" />
-															<span className="text-xs mt-1">{showAll ? "Show Less" : "Show More"}</span>
+															<span className="text-xs mt-1">{showAll ? t(language, 'Show Less') : t(language, 'Show More')}</span>
 														</div>
 													)}
 												</div>
@@ -363,7 +417,7 @@ export default function AddTransaction() {
 
 							<div>
 								<div className="flex justify-between items-center mb-2">
-									<FormLabel>Account</FormLabel>
+									<FormLabel>{t(language, 'Account')}</FormLabel>
 									<Button
 										type="button"
 										variant="ghost"
@@ -385,7 +439,7 @@ export default function AddTransaction() {
 												<Select onValueChange={field.onChange} defaultValue={field.value}>
 													<FormControl>
 														<SelectTrigger>
-															<SelectValue placeholder="Select account" />
+															<SelectValue placeholder={t(language, 'Select account')} />
 														</SelectTrigger>
 													</FormControl>
 													<SelectContent>
@@ -408,7 +462,7 @@ export default function AddTransaction() {
 									/>
 								) : (
 									<div className="text-sm text-gray-500 p-2 bg-gray-100 rounded-md">
-										No accounts yet. Please add an account first.
+										{t(language, 'No accounts yet. Please add an account first.')}
 									</div>
 								)}
 							</div>
@@ -426,6 +480,76 @@ export default function AddTransaction() {
 									</FormItem>
 								)}
 							/>
+
+							<div className="space-y-2">
+								<FormLabel>{t(language, 'Documents')} (Receipts, Invoices, etc.)</FormLabel>
+								<div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+									<input
+										type="file"
+										accept="image/*,application/pdf"
+										multiple
+										onChange={(e) => {
+											const files = Array.from(e.target.files || []);
+											files.forEach((file) => handleFileUpload(file));
+										}}
+										className="hidden"
+										id="document-upload"
+										disabled={uploadingFiles.size > 0}
+									/>
+									<label
+										htmlFor="document-upload"
+										className="flex flex-col items-center justify-center cursor-pointer"
+									>
+										<Upload className="h-8 w-8 text-gray-400 mb-2" />
+										<span className="text-sm text-gray-600">
+											{uploadingFiles.size > 0
+												? t(language, 'Uploading...')
+												: t(language, 'Click to upload or drag and drop')}
+										</span>
+										<span className="text-xs text-gray-400 mt-1">
+											{t(language, 'Images (JPEG, PNG, GIF, WebP) or PDF (max 10MB)')}
+										</span>
+									</label>
+								</div>
+								{documents.length > 0 && (
+									<div className="space-y-2">
+										{documents.map((doc, index) => (
+											<div
+												key={index}
+												className="flex items-center justify-between p-2 bg-gray-50 rounded-md"
+											>
+												<div className="flex items-center gap-2 flex-1 min-w-0">
+													{doc.mimeType.startsWith('image/') ? (
+														<img
+															src={normalizeDocumentUrl(doc.url)}
+															alt={doc.fileName}
+															className="w-8 h-8 object-cover rounded"
+															onError={(e) => {
+																console.error('Error loading image:', doc.url);
+																(e.target as HTMLImageElement).style.display = 'none';
+															}}
+														/>
+													) : (
+														<FileText className="h-8 w-8 text-gray-400" />
+													)}
+													<span className="text-sm text-gray-700 truncate flex-1">
+														{doc.fileName}
+													</span>
+												</div>
+												<Button
+													type="button"
+													variant="ghost"
+													size="sm"
+													onClick={() => removeDocument(index)}
+													className="h-8 w-8 p-0"
+												>
+													<X className="h-4 w-4" />
+												</Button>
+											</div>
+										))}
+									</div>
+								)}
+							</div>
 
 							<DialogFooter>
 								<Button type="button" variant="outline" onClick={() => setIsOpen(false)}>

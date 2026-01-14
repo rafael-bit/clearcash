@@ -28,10 +28,41 @@ ClearCash enables users to efficiently manage their financial activities with fe
 git clone https://github.com/rafael-bit/clearcash
 ```
 
-#### Install dependencies and run the application in development mode
+#### Install dependencies
 
 ```bash
 npm install
+```
+
+#### Configure environment variables
+
+Copy the `env.example` file to `.env` and fill in the required variables:
+
+```bash
+cp env.example .env
+```
+
+**Required variables:**
+- `DATABASE_URL` - MongoDB connection string
+- `NEXTAUTH_SECRET` - Secret for NextAuth (generate with: `openssl rand -base64 32`)
+- `NEXT_PUBLIC_APP_URL` - Your application URL (e.g., `http://localhost:3000`)
+
+**Cloudflare R2 (for document uploads):**
+- `R2_ACCOUNT_ID` - Your Cloudflare Account ID
+- `R2_ACCESS_KEY_ID` - R2 Access Key ID
+- `R2_SECRET_ACCESS_KEY` - R2 Secret Access Key
+- `R2_BUCKET_NAME` - Your R2 bucket name
+- `R2_PUBLIC_URL` - Public URL for your R2 bucket (e.g., `https://your-bucket.r2.dev`)
+
+**Optional variables:**
+- `EMAIL_FROM` - Email address for sending emails
+- `RESEND_API_KEY` - Resend API key for email service
+- `GITHUB_ID` / `GITHUB_SECRET` - GitHub OAuth credentials
+- `GOOGLE_ID` / `GOOGLE_SECRET` - Google OAuth credentials
+
+#### Run the application
+
+```bash
 npm run dev
 ```
 

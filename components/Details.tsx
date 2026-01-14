@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { FileDown, FileText, Edit, Trash2 } from "lucide-react";
+import { FileDown, FileText, Edit, Trash2, Paperclip, X, Upload, Images } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -42,6 +42,8 @@ import { toast } from "sonner";
 import { useLanguage } from "./LanguageProvider";
 import { t } from "@/lib/translations";
 import jsPDF from "jspdf";
+import ImageGallery from "./ImageGallery";
+import { normalizeDocumentUrl } from "@/lib/document-url";
 
 const categoryIcons: Record<string, string> = {
 	food: "/icons/food.svg",
@@ -93,6 +95,14 @@ const editFormSchema = z.object({
 	date: z.string().optional(),
 });
 
+interface Document {
+	id: string;
+	url: string;
+	fileName: string;
+	mimeType: string;
+	uploadedAt: string;
+}
+
 interface Transaction {
 	id: string;
 	title: string;
@@ -107,6 +117,7 @@ interface Transaction {
 		institution: string;
 		color: string;
 	};
+	documents?: Document[];
 }
 
 export default function Details() {
@@ -121,6 +132,9 @@ export default function Details() {
 	const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 	const [isDeleting, setIsDeleting] = useState<string | null>(null);
+	const [editDocuments, setEditDocuments] = useState<Array<{ url: string; fileName: string; mimeType: string }>>([]);
+	const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
+	const [isImageGalleryOpen, setIsImageGalleryOpen] = useState(false);
 
 	const editForm = useForm<z.infer<typeof editFormSchema>>({
 		resolver: zodResolver(editFormSchema),
@@ -401,7 +415,58 @@ export default function Details() {
 			category: transaction.category,
 			date: new Date(transaction.date).toISOString().split('T')[0],
 		});
+		setEditDocuments(transaction.documents?.map(doc => ({
+			url: doc.url,
+			fileName: doc.fileName,
+			mimeType: doc.mimeType,
+		})) || []);
 		setIsEditDialogOpen(true);
+	};
+
+	const handleFileUpload = async (file: File) => {
+		const fileId = `${Date.now()}-${Math.random()}`;
+		setUploadingFiles((prev) => new Set(prev).add(fileId));
+
+		try {
+			const formData = new FormData();
+			formData.append('file', file);
+
+			const uploadResponse = await fetch('/api/upload', {
+				method: 'POST',
+				body: formData,
+			});
+
+			if (!uploadResponse.ok) {
+				const error = await uploadResponse.json();
+				throw new Error(error.error || 'Failed to upload file');
+			}
+
+			const { url, fileName, mimeType } = await uploadResponse.json();
+
+			setEditDocuments((prev) => [
+				...prev,
+				{
+					url,
+					fileName,
+					mimeType,
+				},
+			]);
+
+			toast.success(t(language, 'File uploaded successfully.'));
+		} catch (error) {
+			console.error('Error uploading file:', error);
+			toast.error(error instanceof Error ? error.message : t(language, 'Failed to upload file. Please try again.'));
+		} finally {
+			setUploadingFiles((prev) => {
+				const next = new Set(prev);
+				next.delete(fileId);
+				return next;
+			});
+		}
+	};
+
+	const removeEditDocument = (index: number) => {
+		setEditDocuments((prev) => prev.filter((_, i) => i !== index));
 	};
 
 	const handleDelete = async (transactionId: string) => {
@@ -441,6 +506,7 @@ export default function Details() {
 				body: JSON.stringify({
 					...data,
 					bankAccountId: editingTransaction.bankAccountId,
+					documents: editDocuments.length > 0 ? editDocuments : [],
 				}),
 			});
 
@@ -449,6 +515,7 @@ export default function Details() {
 			toast.success(t(language, 'Transaction updated successfully'));
 			setIsEditDialogOpen(false);
 			setEditingTransaction(null);
+			setEditDocuments([]);
 			window.dispatchEvent(new Event('transactionUpdated'));
 			window.dispatchEvent(new Event('accountUpdated'));
 			fetchTransactions();
@@ -500,6 +567,11 @@ export default function Details() {
 				</div>
 				<div className="flex items-center gap-2">
 					<div className="flex gap-4">
+						<Button variant="outline" onClick={() => setIsImageGalleryOpen(true)}>
+							<Images className="h-5 w-5 mr-2" />
+							{t(language, 'View Images')}
+						</Button>
+
 						<Button variant="outline" onClick={handleGeneratePDF}>
 							<FileText className="h-5 w-5 mr-2" />
 							{t(language, 'Generate PDF')}
@@ -545,7 +617,12 @@ export default function Details() {
 												className="rounded-full"
 											/>
 											<div className="flex-1">
-												<p className="font-medium">{transaction.title}</p>
+												<div className="flex items-center gap-2">
+													<p className="font-medium">{transaction.title}</p>
+													{transaction.documents && transaction.documents.length > 0 && (
+														<Paperclip className="h-4 w-4 text-gray-400" />
+													)}
+												</div>
 												<p className="text-xs text-neutral-500">
 													{format(new Date(transaction.date), 'dd/MM/yyyy', {
 														locale: language === 'pt' ? ptBR : enUS
@@ -553,6 +630,21 @@ export default function Details() {
 												</p>
 												{transaction.bankAccount && (
 													<p className="text-xs text-neutral-500">{transaction.bankAccount.institution}</p>
+												)}
+												{transaction.documents && transaction.documents.length > 0 && (
+													<div className="flex gap-2 mt-1">
+														{transaction.documents.map((doc, idx) => (
+															<a
+																key={idx}
+																href={normalizeDocumentUrl(doc.url)}
+																target="_blank"
+																rel="noopener noreferrer"
+																className="text-xs text-blue-500 hover:text-blue-700 underline"
+															>
+																{doc.fileName}
+															</a>
+														))}
+													</div>
 												)}
 											</div>
 										</div>
@@ -711,6 +803,80 @@ export default function Details() {
 									</FormItem>
 								)}
 							/>
+							<div className="space-y-2">
+								<FormLabel>{t(language, 'Documents')} (Receipts, Invoices, etc.)</FormLabel>
+								<div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+									<input
+										type="file"
+										accept="image/*,application/pdf"
+										multiple
+										onChange={(e) => {
+											const files = Array.from(e.target.files || []);
+											files.forEach((file) => handleFileUpload(file));
+										}}
+										className="hidden"
+										id="edit-document-upload"
+										disabled={uploadingFiles.size > 0}
+									/>
+									<label
+										htmlFor="edit-document-upload"
+										className="flex flex-col items-center justify-center cursor-pointer"
+									>
+										<Upload className="h-8 w-8 text-gray-400 mb-2" />
+										<span className="text-sm text-gray-600">
+											{uploadingFiles.size > 0
+												? t(language, 'Uploading...')
+												: t(language, 'Click to upload or drag and drop')}
+										</span>
+										<span className="text-xs text-gray-400 mt-1">
+											{t(language, 'Images (JPEG, PNG, GIF, WebP) or PDF (max 10MB)')}
+										</span>
+									</label>
+								</div>
+								{editDocuments.length > 0 && (
+									<div className="space-y-2">
+										{editDocuments.map((doc, index) => (
+											<div
+												key={index}
+												className="flex items-center justify-between p-2 bg-gray-50 rounded-md"
+											>
+												<div className="flex items-center gap-2 flex-1 min-w-0">
+													{doc.mimeType.startsWith('image/') ? (
+														<img
+															src={normalizeDocumentUrl(doc.url)}
+															alt={doc.fileName}
+															className="w-8 h-8 object-cover rounded"
+															onError={(e) => {
+																console.error('Error loading image:', doc.url);
+																(e.target as HTMLImageElement).style.display = 'none';
+															}}
+														/>
+													) : (
+														<FileText className="h-8 w-8 text-gray-400" />
+													)}
+													<a
+														href={normalizeDocumentUrl(doc.url)}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="text-sm text-blue-500 hover:text-blue-700 underline truncate flex-1"
+													>
+														{doc.fileName}
+													</a>
+												</div>
+												<Button
+													type="button"
+													variant="ghost"
+													size="sm"
+													onClick={() => removeEditDocument(index)}
+													className="h-8 w-8 p-0"
+												>
+													<X className="h-4 w-4" />
+												</Button>
+											</div>
+										))}
+									</div>
+								)}
+							</div>
 							<DialogFooter>
 								<Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
 									{t(language, 'Cancel')}
@@ -721,6 +887,11 @@ export default function Details() {
 					</Form>
 				</DialogContent>
 			</Dialog>
+
+			<ImageGallery
+				isOpen={isImageGalleryOpen}
+				onClose={() => setIsImageGalleryOpen(false)}
+			/>
 		</section>
 	);
 }

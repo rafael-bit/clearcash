@@ -37,6 +37,7 @@ export async function GET(request: Request) {
 			},
 			include: {
 				bankAccount: true,
+				documents: true,
 			},
 			orderBy: {
 				date: 'desc',
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
 	}
 
 	try {
-		const { title, description, amount, type, category, date, bankAccountId } = await request.json();
+		const { title, description, amount, type, category, date, bankAccountId, documents } = await request.json();
 		const result = await prisma.$transaction(async (tx) => {
 			const transaction = await tx.transaction.create({
 				data: {
@@ -80,6 +81,18 @@ export async function POST(request: Request) {
 							},
 						},
 					}),
+					...(documents && Array.isArray(documents) && documents.length > 0 && {
+						documents: {
+							create: documents.map((doc: { url: string; fileName: string; mimeType: string }) => ({
+								url: doc.url,
+								fileName: doc.fileName,
+								mimeType: doc.mimeType,
+							})),
+						},
+					}),
+				},
+				include: {
+					documents: true,
 				},
 			});
 
