@@ -61,19 +61,22 @@ export async function GET(
 				'Cache-Control': 'public, max-age=31536000, immutable',
 			},
 		});
-	} catch (error: any) {
+	} catch (error: unknown) {
+		const errorObj = error as { message?: string; name?: string; Code?: string };
+		const pathValue = (await params).path.join('/');
+		
 		console.error('Error fetching file from R2:', {
-			error: error.message,
-			name: error.name,
-			code: error.Code,
-			path: (await params).path.join('/'),
+			error: errorObj.message,
+			name: errorObj.name,
+			code: errorObj.Code,
+			path: pathValue,
 		});
 		
-		if (error.name === 'NoSuchKey' || error.Code === 'NoSuchKey') {
+		if (errorObj.name === 'NoSuchKey' || errorObj.Code === 'NoSuchKey') {
 			return NextResponse.json({ error: 'File not found' }, { status: 404 });
 		}
 		
-		if (error.name === 'NoSuchBucket' || error.Code === 'NoSuchBucket') {
+		if (errorObj.name === 'NoSuchBucket' || errorObj.Code === 'NoSuchBucket') {
 			return NextResponse.json(
 				{ error: `Bucket "${R2_BUCKET_NAME}" not found` },
 				{ status: 500 }
@@ -81,7 +84,7 @@ export async function GET(
 		}
 		
 		return NextResponse.json(
-			{ error: `Failed to fetch file: ${error.message || error.name || 'Unknown error'}` },
+			{ error: `Failed to fetch file: ${errorObj.message || errorObj.name || 'Unknown error'}` },
 			{ status: 500 }
 		);
 	}

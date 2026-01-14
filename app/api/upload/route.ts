@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 		const arrayBuffer = await file.arrayBuffer();
 		const buffer = Buffer.from(arrayBuffer);
 
-		const { fileKey, publicUrl } = await uploadFile(
+		const { publicUrl } = await uploadFile(
 			buffer,
 			file.name,
 			file.type

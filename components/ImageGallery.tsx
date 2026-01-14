@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import Image from 'next/image';
 import { useLanguage } from './LanguageProvider';
 import { t } from '@/lib/translations';
 import { normalizeDocumentUrl } from '@/lib/document-url';
@@ -39,10 +38,15 @@ export default function ImageGallery({ isOpen, onClose }: ImageGalleryProps) {
 			const response = await fetch('/api/transactions');
 			if (!response.ok) throw new Error('Failed to fetch transactions');
 
-			const transactions = await response.json();
+			const transactions = await response.json() as Array<{
+				id: string;
+				title: string;
+				date: string;
+				documents?: Document[];
+			}>;
 			const allImages: Document[] = [];
 
-			transactions.forEach((transaction: any) => {
+			transactions.forEach((transaction) => {
 				if (transaction.documents && transaction.documents.length > 0) {
 					transaction.documents.forEach((doc: Document) => {
 						if (doc.mimeType.startsWith('image/')) {
