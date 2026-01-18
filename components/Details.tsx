@@ -900,15 +900,15 @@ export default function Details() {
 																		masked = masked.slice(0, 5) + '/' + masked.slice(5, 9);
 																	}
 																	
+																	// Atualizar o valor exibido
+																	e.target.value = masked;
+																	
 																	// Converter para ISO quando tiver formato completo
 																	if (masked.length === 10) {
 																		const iso = brazilianToIsoFormat(masked);
 																		if (iso && iso.match(/^\d{4}-\d{2}-\d{2}$/)) {
 																			field.onChange(iso);
 																		}
-																	} else {
-																		// Atualizar o valor exibido mesmo se incompleto
-																		e.target.value = masked;
 																	}
 																}}
 																onBlur={(e) => {
@@ -917,13 +917,17 @@ export default function Details() {
 																		const iso = brazilianToIsoFormat(input);
 																		if (iso && iso.match(/^\d{4}-\d{2}-\d{2}$/)) {
 																			field.onChange(iso);
-																			field.onBlur();
+																		} else {
+																			// Se formato inválido, manter o valor atual do campo
+																			const currentIso = field.value || dateToInputValue(new Date());
+																			field.onChange(currentIso);
 																		}
-																	} else if (input.length > 0) {
-																		// Se não estiver completo, resetar para data atual
-																		const today = dateToInputValue(new Date());
-																		field.onChange(today);
+																	} else if (input.length > 0 && input.length < 10) {
+																		// Se não estiver completo, manter o valor atual do campo
+																		const currentIso = field.value || dateToInputValue(new Date());
+																		field.onChange(currentIso);
 																	}
+																	field.onBlur();
 																}}
 																name={field.name}
 																ref={field.ref}

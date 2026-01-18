@@ -15,11 +15,24 @@ export function formatDate(date: string | Date, language: 'pt' | 'en' = 'en'): s
     let dateObj: Date;
     
     if (typeof date === 'string') {
-      // Tentar parseISO primeiro, se falhar, tentar new Date
-      try {
-        dateObj = parseISO(date);
-      } catch {
-        dateObj = new Date(date);
+      // Se já está no formato YYYY-MM-DD, criar Date usando componentes locais
+      const isoMatch = date.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (isoMatch) {
+        const [, year, month, day] = isoMatch;
+        // Criar data no timezone local para evitar problemas
+        dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      } else {
+        // Tentar parseISO primeiro, se falhar, tentar new Date
+        try {
+          dateObj = parseISO(date);
+          // Se parseISO retornar uma data inválida ou com problemas de timezone,
+          // tentar criar usando componentes locais
+          if (isNaN(dateObj.getTime())) {
+            dateObj = new Date(date);
+          }
+        } catch {
+          dateObj = new Date(date);
+        }
       }
     } else {
       dateObj = date;
@@ -41,12 +54,19 @@ export function formatDate(date: string | Date, language: 'pt' | 'en' = 'en'): s
 
 /**
  * Converte uma data para o formato ISO (YYYY-MM-DD) para inputs type="date"
+ * Usa os componentes de data local para evitar problemas de timezone
  */
 export function dateToInputValue(date: string | Date): string {
   try {
     let dateObj: Date;
     
     if (typeof date === 'string') {
+      // Se já está no formato YYYY-MM-DD, retornar diretamente
+      const isoMatch = date.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (isoMatch) {
+        return isoMatch[0];
+      }
+      
       // Tentar parseISO primeiro, se falhar, tentar new Date
       try {
         dateObj = parseISO(date);
@@ -63,8 +83,8 @@ export function dateToInputValue(date: string | Date): string {
       return new Date().toISOString().split('T')[0];
     }
     
-    // Ajustar para o timezone local para evitar problemas de data
-    // Usar os componentes de data local para evitar problemas de timezone
+    // IMPORTANTE: Usar getFullYear(), getMonth(), getDate() que retornam valores no timezone local
+    // Isso evita problemas quando a data vem do banco em UTC
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
     const day = String(dateObj.getDate()).padStart(2, '0');

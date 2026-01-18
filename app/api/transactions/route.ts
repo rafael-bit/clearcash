@@ -44,7 +44,15 @@ export async function GET(request: Request) {
 			},
 		});
 
-		return NextResponse.json(transactions);
+		// Converter datas para strings no formato YYYY-MM-DD para evitar problemas de timezone
+		const transactionsWithFormattedDates = transactions.map(transaction => ({
+			...transaction,
+			date: transaction.date instanceof Date 
+				? `${transaction.date.getFullYear()}-${String(transaction.date.getMonth() + 1).padStart(2, '0')}-${String(transaction.date.getDate()).padStart(2, '0')}`
+				: transaction.date,
+		}));
+
+		return NextResponse.json(transactionsWithFormattedDates);
 	} catch (error) {
 		console.error('Error fetching transactions:', error);
 		return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 });
