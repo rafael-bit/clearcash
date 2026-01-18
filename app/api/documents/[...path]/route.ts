@@ -2,23 +2,28 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/services/auth';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 
-const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
-const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
-const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
-const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME;
+function getS3Client() {
+	const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
+	const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
+	const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
+	const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME;
 
-if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET_NAME) {
-	throw new Error('Missing R2 environment variables');
+	if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET_NAME) {
+		throw new Error('Missing R2 environment variables');
+	}
+
+	return {
+		client: new S3Client({
+			region: 'auto',
+			endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+			credentials: {
+				accessKeyId: R2_ACCESS_KEY_ID,
+				secretAccessKey: R2_SECRET_ACCESS_KEY,
+			},
+		}),
+		bucketName: R2_BUCKET_NAME,
+	};
 }
-
-const s3Client = new S3Client({
-	region: 'auto',
-	endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-	credentials: {
-		accessKeyId: R2_ACCESS_KEY_ID,
-		secretAccessKey: R2_SECRET_ACCESS_KEY,
-	},
-});
 
 export async function GET(
 	request: Request,
@@ -33,11 +38,12 @@ export async function GET(
 	try {
 		const { path } = await params;
 		const fileKey = path.join('/');
+		const { client: s3Client, bucketName } = getS3Client();
 
-		console.log('Fetching file from R2:', { fileKey, bucket: R2_BUCKET_NAME });
+		console.log('Fetching file from R2:', { fileKey, bucket: bucketName });
 
 		const command = new GetObjectCommand({
-			Bucket: R2_BUCKET_NAME,
+			Bucket: bucketName,
 			Key: fileKey,
 		});
 
@@ -77,8 +83,9 @@ export async function GET(
 		}
 		
 		if (errorObj.name === 'NoSuchBucket' || errorObj.Code === 'NoSuchBucket') {
+			const bucketName = process.env.R2_BUCKET_NAME || 'unknown';
 			return NextResponse.json(
-				{ error: `Bucket "${R2_BUCKET_NAME}" not found` },
+				{ error: `Bucket "${bucketName}" not found` },
 				{ status: 500 }
 			);
 		}
