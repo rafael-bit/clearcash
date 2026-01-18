@@ -35,6 +35,7 @@ import clsx from "clsx";
 import { useVisibility } from "./VisibilityProvider";
 import { format } from "date-fns";
 import { ptBR, enUS } from "date-fns/locale";
+import { formatDate, dateToInputValue, isoToBrazilianFormat, brazilianToIsoFormat } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -60,7 +61,7 @@ const categoryIcons: Record<string, string> = {
 	other: "/icons/expensesColor.svg",
 };
 
-const getCategoryOptions = (language: 'pt' | 'en'): Record<'INCOME' | 'EXPENSE', { value: string; label: string; icon: string }[]> => ({
+const getDefaultCategoryOptions = (language: 'pt' | 'en'): Record<'INCOME' | 'EXPENSE', Array<{ value: string; label: string; icon: string }>> => ({
 	INCOME: [
 		{ value: 'salary', label: t(language, 'Salary'), icon: '/icons/incomeColor.svg' },
 		{ value: 'investment', label: t(language, 'Investment'), icon: '/icons/investiments.svg' },
@@ -135,6 +136,10 @@ export default function Details() {
 	const [editDocuments, setEditDocuments] = useState<Array<{ url: string; fileName: string; mimeType: string }>>([]);
 	const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
 	const [isImageGalleryOpen, setIsImageGalleryOpen] = useState(false);
+	const [categoryOptions, setCategoryOptions] = useState<Record<'INCOME' | 'EXPENSE', { value: string; label: string; icon: string }[]>>({
+		INCOME: getDefaultCategoryOptions(language).INCOME,
+		EXPENSE: getDefaultCategoryOptions(language).EXPENSE,
+	});
 
 	const editForm = useForm<z.infer<typeof editFormSchema>>({
 		resolver: zodResolver(editFormSchema),
@@ -144,7 +149,7 @@ export default function Details() {
 			amount: '',
 			type: 'EXPENSE',
 			category: '',
-			date: new Date().toISOString().split('T')[0],
+			date: dateToInputValue(new Date()),
 		},
 	});
 
@@ -183,7 +188,40 @@ export default function Details() {
 
 	useEffect(() => {
 		fetchTransactions();
+		loadCategoryOptions();
 	}, [fetchTransactions]);
+
+	const loadCategoryOptions = async () => {
+		try {
+			const response = await fetch('/api/categories');
+			if (response.ok) {
+				const customCategories = await response.json();
+				const defaultCategories = getDefaultCategoryOptions(language);
+				
+				const customIncome = customCategories
+					.filter((cat: { type: string }) => cat.type === 'INCOME')
+					.map((cat: { id: string; name: string; nameEn?: string; icon: string }) => ({
+						value: `custom_${cat.id}`,
+						label: language === 'pt' ? cat.name : (cat.nameEn || cat.name),
+						icon: cat.icon,
+					}));
+				const customExpense = customCategories
+					.filter((cat: { type: string }) => cat.type === 'EXPENSE')
+					.map((cat: { id: string; name: string; nameEn?: string; icon: string }) => ({
+						value: `custom_${cat.id}`,
+						label: language === 'pt' ? cat.name : (cat.nameEn || cat.name),
+						icon: cat.icon,
+					}));
+				
+				setCategoryOptions({
+					INCOME: [...customIncome, ...defaultCategories.INCOME],
+					EXPENSE: [...customExpense, ...defaultCategories.EXPENSE],
+				});
+			}
+		} catch (error) {
+			console.error('Error loading custom categories:', error);
+		}
+	};
 
 	useEffect(() => {
 		const handleTransactionUpdate = () => {
@@ -261,7 +299,7 @@ export default function Details() {
 					yPos = 20;
 				}
 				
-				const dateStr = format(new Date(transaction.date), 'dd/MM/yyyy', { locale });
+				const dateStr = formatDate(transaction.date, language);
 				const typeStr = transaction.type === 'INCOME' ? t(language, 'Income') : t(language, 'Expenses');
 				const amountStr = transaction.type === 'EXPENSE' 
 					? `-${new Intl.NumberFormat(language === 'pt' ? 'pt-BR' : 'en-US', { 
@@ -352,9 +390,7 @@ export default function Details() {
 		try {
 			const headers = ['Date', 'Title', 'Category', 'Type', 'Amount', 'Account', 'Description'];
 			const rows = transactions.map(transaction => [
-				format(new Date(transaction.date), 'dd/MM/yyyy', {
-					locale: language === 'pt' ? ptBR : enUS
-				}),
+				formatDate(transaction.date, language),
 				transaction.title,
 				transaction.category,
 				transaction.type,
@@ -401,19 +437,54 @@ export default function Details() {
 		}
 	};
 
-	const getCategoryIcon = (category: string) => {
-		return categoryIcons[category.toLowerCase()] || categoryIcons.other;
+	const getCategoryIcon = (category: string, type?: 'INCOME' | 'EXPENSE') => {
+		// Verificar se é uma categoria customizada (pode vir com ou sem prefixo)
+		const categoryId = category.startsWith('custom_') ? category.replace('custom_', '') : category;
+		const allCategories = [...categoryOptions.INCOME, ...categoryOptions.EXPENSE];
+		const customCat = allCategories.find(cat => {
+			const catId = cat.value.startsWith('custom_') ? cat.value.replace('custom_', '') : cat.value;
+			return catId === categoryId;
+		});
+		if (customCat) {
+			return customCat.icon;
+		}
+		
+		const categoryLower = category.toLowerCase();
+		// Se for "other", usar o ícone baseado no tipo da transação
+		if (categoryLower === 'other') {
+			if (type === 'INCOME') {
+				return '/icons/incomeColor.svg';
+			}
+			return '/icons/expensesColor.svg';
+		}
+		return categoryIcons[categoryLower] || (type === 'INCOME' ? '/icons/incomeColor.svg' : '/icons/expensesColor.svg');
 	};
 
-	const handleEdit = (transaction: Transaction) => {
+	const handleEdit = async (transaction: Transaction) => {
 		setEditingTransaction(transaction);
+		
+		// Carregar categorias customizadas antes de definir o valor
+		await loadCategoryOptions();
+		
+		// Verificar se a categoria é customizada
+		let categoryValue = transaction.category;
+		const allCategories = [...categoryOptions.INCOME, ...categoryOptions.EXPENSE];
+		const customCat = allCategories.find(cat => {
+			const catId = cat.value.startsWith('custom_') ? cat.value.replace('custom_', '') : cat.value;
+			return catId === transaction.category;
+		});
+		
+		if (customCat) {
+			categoryValue = customCat.value;
+		}
+		
 		editForm.reset({
 			title: transaction.title,
 			description: transaction.description || '',
 			amount: transaction.amount.toString(),
 			type: transaction.type,
-			category: transaction.category,
-			date: new Date(transaction.date).toISOString().split('T')[0],
+			category: categoryValue,
+			date: dateToInputValue(transaction.date),
 		});
 		setEditDocuments(transaction.documents?.map(doc => ({
 			url: doc.url,
@@ -498,6 +569,11 @@ export default function Details() {
 		if (!editingTransaction) return;
 
 		try {
+			// Se a categoria começar com "custom_", remover o prefixo
+			const categoryValue = data.category.startsWith('custom_') 
+				? data.category.replace('custom_', '') 
+				: data.category;
+			
 			const response = await fetch(`/api/transactions/${editingTransaction.id}`, {
 				method: 'PUT',
 				headers: {
@@ -505,6 +581,7 @@ export default function Details() {
 				},
 				body: JSON.stringify({
 					...data,
+					category: categoryValue,
 					bankAccountId: editingTransaction.bankAccountId,
 					documents: editDocuments.length > 0 ? editDocuments : [],
 				}),
@@ -610,7 +687,7 @@ export default function Details() {
 									<div key={transaction.id} className="flex justify-between items-center p-3 bg-white hover:bg-gray-100 rounded-lg transition-colors">
 										<div className="flex items-center gap-3 flex-1">
 											<Image
-												src={getCategoryIcon(transaction.category)}
+												src={getCategoryIcon(transaction.category, transaction.type)}
 												alt={transaction.category}
 												width={40}
 												height={40}
@@ -624,9 +701,7 @@ export default function Details() {
 													)}
 												</div>
 												<p className="text-xs text-neutral-500">
-													{format(new Date(transaction.date), 'dd/MM/yyyy', {
-														locale: language === 'pt' ? ptBR : enUS
-													})}
+													{formatDate(transaction.date, language)}
 												</p>
 												{transaction.bankAccount && (
 													<p className="text-xs text-neutral-500">{transaction.bankAccount.institution}</p>
@@ -776,7 +851,7 @@ export default function Details() {
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent>
-												{getCategoryOptions(language)[editForm.watch('type') || 'EXPENSE'].map((category) => (
+												{categoryOptions[editForm.watch('type') || 'EXPENSE'].map((category) => (
 													<SelectItem key={category.value} value={category.value}>
 														<div className="flex items-center gap-2">
 															<Image src={category.icon} alt={category.label} width={20} height={20} />
@@ -793,15 +868,97 @@ export default function Details() {
 							<FormField
 								control={editForm.control}
 								name="date"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>{t(language, 'Date')}</FormLabel>
-										<FormControl>
-											<Input type="date" {...field} />
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
+								render={({ field }) => {
+									const isoDate = field.value || dateToInputValue(new Date());
+									// Converter para formato brasileiro para exibição
+									const displayValue = language === 'pt' 
+										? isoToBrazilianFormat(isoDate)
+										: isoDate;
+									
+									return (
+										<FormItem>
+											<FormLabel>{t(language, 'Date')}</FormLabel>
+											<FormControl>
+												<div className="relative">
+													{language === 'pt' ? (
+														<>
+															<Input 
+																type="text"
+																placeholder="DD/MM/AAAA"
+																value={displayValue}
+																onChange={(e) => {
+																	const input = e.target.value;
+																	// Permitir apenas números e barras
+																	const cleaned = input.replace(/[^\d/]/g, '');
+																	// Aplicar máscara DD/MM/YYYY
+																	let masked = cleaned;
+																	if (cleaned.length > 2 && !cleaned.includes('/')) {
+																		masked = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+																	}
+																	if (masked.length > 5) {
+																		masked = masked.slice(0, 5) + '/' + masked.slice(5, 9);
+																	}
+																	
+																	// Converter para ISO quando tiver formato completo
+																	if (masked.length === 10) {
+																		const iso = brazilianToIsoFormat(masked);
+																		if (iso && iso.match(/^\d{4}-\d{2}-\d{2}$/)) {
+																			field.onChange(iso);
+																		}
+																	} else {
+																		// Atualizar o valor exibido mesmo se incompleto
+																		e.target.value = masked;
+																	}
+																}}
+																onBlur={(e) => {
+																	const input = e.target.value;
+																	if (input.length === 10) {
+																		const iso = brazilianToIsoFormat(input);
+																		if (iso && iso.match(/^\d{4}-\d{2}-\d{2}$/)) {
+																			field.onChange(iso);
+																			field.onBlur();
+																		}
+																	} else if (input.length > 0) {
+																		// Se não estiver completo, resetar para data atual
+																		const today = dateToInputValue(new Date());
+																		field.onChange(today);
+																	}
+																}}
+																name={field.name}
+																ref={field.ref}
+																maxLength={10}
+																className="pr-12"
+															/>
+															<Input
+																type="date"
+																value={isoDate}
+																onChange={(e) => {
+																	field.onChange(e.target.value);
+																}}
+																className="absolute opacity-0 pointer-events-none w-0 h-0"
+																tabIndex={-1}
+																aria-hidden="true"
+															/>
+														</>
+													) : (
+														<Input 
+															type="date" 
+															value={isoDate}
+															onChange={(e) => {
+																field.onChange(e.target.value);
+															}}
+															onBlur={field.onBlur}
+															name={field.name}
+															ref={field.ref}
+															lang="en-US"
+														/>
+													)}
+												</div>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									);
+								}}
 							/>
 							<div className="space-y-2">
 								<FormLabel>{t(language, 'Documents')} (Receipts, Invoices, etc.)</FormLabel>

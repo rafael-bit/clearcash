@@ -39,6 +39,7 @@ import { toast } from 'sonner'
 import { useLanguage } from './LanguageProvider'
 import { t } from '@/lib/translations'
 import { normalizeDocumentUrl } from '@/lib/document-url'
+import { dateToInputValue, formatDate, isoToBrazilianFormat, brazilianToIsoFormat } from '@/lib/utils'
 
 const formSchema = z.object({
 	title: z.string().min(2, {
@@ -96,7 +97,7 @@ type AccountTypeOption = {
 	icon: string
 }
 
-const getCategoryOptions = (language: 'pt' | 'en'): Record<'INCOME' | 'EXPENSE', Category[]> => ({
+const getDefaultCategoryOptions = (language: 'pt' | 'en'): Record<'INCOME' | 'EXPENSE', Category[]> => ({
 	INCOME: [
 		{ value: 'salary', label: t(language, 'Salary'), icon: '/icons/incomeColor.svg' },
 		{ value: 'investment', label: t(language, 'Investment'), icon: '/icons/investiments.svg' },
@@ -116,6 +117,40 @@ const getCategoryOptions = (language: 'pt' | 'en'): Record<'INCOME' | 'EXPENSE',
 	],
 })
 
+const getCategoryOptions = async (language: 'pt' | 'en'): Promise<Record<'INCOME' | 'EXPENSE', Category[]>> => {
+	const defaultCategories = getDefaultCategoryOptions(language);
+	
+	try {
+		const response = await fetch('/api/categories');
+		if (response.ok) {
+			const customCategories = await response.json();
+			const customIncome = customCategories
+				.filter((cat: { type: string }) => cat.type === 'INCOME')
+				.map((cat: { id: string; name: string; nameEn?: string; icon: string }) => ({
+					value: `custom_${cat.id}`,
+					label: language === 'pt' ? cat.name : (cat.nameEn || cat.name),
+					icon: cat.icon,
+				}));
+			const customExpense = customCategories
+				.filter((cat: { type: string }) => cat.type === 'EXPENSE')
+				.map((cat: { id: string; name: string; nameEn?: string; icon: string }) => ({
+					value: `custom_${cat.id}`,
+					label: language === 'pt' ? cat.name : (cat.nameEn || cat.name),
+					icon: cat.icon,
+				}));
+			
+			return {
+				INCOME: [...customIncome, ...defaultCategories.INCOME],
+				EXPENSE: [...customExpense, ...defaultCategories.EXPENSE],
+			};
+		}
+	} catch (error) {
+		console.error('Error fetching custom categories:', error);
+	}
+	
+	return defaultCategories;
+}
+
 const accountTypeOptions: AccountTypeOption[] = [
 	{ value: 'BANK', label: 'Bank Account', icon: '/icons/cardGray.svg' },
 	{ value: 'INVESTMENT', label: 'Investment', icon: '/icons/investiments.svg' },
@@ -132,11 +167,19 @@ export default function AddTransaction() {
 		setIsAccountModalOpen
 	} = useModal()
 	const [accounts, setAccounts] = useState<BankAccount[]>([])
+	const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null)
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [showAll, setShowAll] = useState(false)
 	const [documents, setDocuments] = useState<Array<{ url: string; fileName: string; mimeType: string }>>([])
 	const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set())
+	const [categoryOptions, setCategoryOptions] = useState<Record<'INCOME' | 'EXPENSE', Category[]>>({
+		INCOME: getDefaultCategoryOptions(language).INCOME,
+		EXPENSE: getDefaultCategoryOptions(language).EXPENSE,
+	})
 
+	// Inicializar a data atual uma vez
+	const getInitialDate = () => dateToInputValue(new Date());
+	
 	const form = useForm<TransactionFormValues>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
@@ -145,7 +188,7 @@ export default function AddTransaction() {
 			type: 'EXPENSE',
 			category: '',
 			bankAccountId: '',
-			date: new Date().toISOString().split('T')[0],
+			date: getInitialDate(),
 		},
 	})
 
@@ -162,9 +205,19 @@ export default function AddTransaction() {
 	})
 
 	const transactionType = form.watch('type') as 'INCOME' | 'EXPENSE'
+	const currentDate = form.watch('date')
+	
 	useEffect(() => {
 		form.setValue('category', '')
 	}, [transactionType, form])
+	
+	// Garantir que a data sempre tenha um valor válido
+	useEffect(() => {
+		if (!currentDate || currentDate === '') {
+			const today = dateToInputValue(new Date())
+			form.setValue('date', today, { shouldValidate: false })
+		}
+	}, [currentDate, form])
 
 	const fetchAccounts = useCallback(async () => {
 		try {
@@ -177,19 +230,56 @@ export default function AddTransaction() {
 			if (data.length === 0) {
 				setShowAccountForm(true)
 			} else {
-				form.setValue('bankAccountId', data[0].id)
+				// Usar a conta selecionada se existir, senão usar a primeira conta
+				const accountToUse = selectedAccountId && data.find((acc: BankAccount) => acc.id === selectedAccountId)
+					? selectedAccountId
+					: data[0].id
+				form.setValue('bankAccountId', accountToUse)
 				setShowAccountForm(false)
 			}
 		} catch (error) {
 			console.error('Error fetching accounts:', error)
 		}
-	}, [setShowAccountForm, form])
+	}, [setShowAccountForm, form, selectedAccountId])
+
+	// Escutar eventos de seleção de conta
+	useEffect(() => {
+		const handleAccountSelected = (event: CustomEvent<string>) => {
+			const accountId = event.detail
+			setSelectedAccountId(accountId)
+			
+			// Se o modal estiver aberto e a conta existir na lista, atualizar o formulário
+			if (isOpen && accounts.length > 0) {
+				const accountExists = accounts.find(acc => acc.id === accountId)
+				if (accountExists) {
+					form.setValue('bankAccountId', accountId)
+				}
+			}
+		}
+
+		window.addEventListener('accountSelected', handleAccountSelected as EventListener)
+
+		return () => {
+			window.removeEventListener('accountSelected', handleAccountSelected as EventListener)
+		}
+	}, [isOpen, accounts, form])
 
 	useEffect(() => {
 		if (isOpen) {
 			fetchAccounts()
 		}
 	}, [isOpen, fetchAccounts])
+
+	// Atualizar a data quando o modal é aberto
+	useEffect(() => {
+		if (isOpen) {
+			// Usar setTimeout para garantir que o DOM está pronto
+			setTimeout(() => {
+				const today = dateToInputValue(new Date())
+				form.setValue('date', today, { shouldValidate: false, shouldDirty: false })
+			}, 0)
+		}
+	}, [isOpen, form])
 
 	const handleFileUpload = async (file: File) => {
 		const fileId = `${Date.now()}-${Math.random()}`;
@@ -241,6 +331,11 @@ export default function AddTransaction() {
 	const onSubmit = async (data: z.infer<typeof formSchema>) => {
 		try {
 			setIsSubmitting(true);
+			// Se a categoria começar com "custom_", remover o prefixo
+			const categoryValue = data.category.startsWith('custom_') 
+				? data.category.replace('custom_', '') 
+				: data.category;
+			
 			const response = await fetch('/api/transactions', {
 				method: 'POST',
 				headers: {
@@ -248,6 +343,7 @@ export default function AddTransaction() {
 				},
 				body: JSON.stringify({
 					...data,
+					category: categoryValue,
 					documents: documents.length > 0 ? documents : undefined,
 				}),
 			});
@@ -256,7 +352,19 @@ export default function AddTransaction() {
 
 			toast.success(t(language, 'Transaction created successfully.'))
 
-			form.reset();
+			// Manter a conta selecionada ao resetar, se existir
+			const accountToUse = selectedAccountId && accounts.find(acc => acc.id === selectedAccountId)
+				? selectedAccountId
+				: accounts.length > 0 ? accounts[0].id : ''
+			
+			form.reset({
+				title: '',
+				amount: '',
+				type: 'EXPENSE',
+				category: '',
+				bankAccountId: accountToUse,
+				date: dateToInputValue(new Date()),
+			});
 			setDocuments([]);
 			setIsOpen(false);
 			window.dispatchEvent(new Event('transactionUpdated'));
@@ -376,7 +484,7 @@ export default function AddTransaction() {
 								control={form.control}
 								name="category"
 								render={({ field }) => {
-									const categories = getCategoryOptions(language)[transactionType];
+									const categories = categoryOptions[transactionType];
 									const visibleCategories = showAll ? categories : categories.slice(0, 7);
 
 									return (
@@ -469,15 +577,98 @@ export default function AddTransaction() {
 							<FormField
 								control={form.control}
 								name="date"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>{t(language, 'Date')}</FormLabel>
-										<FormControl>
-											<Input type="date" {...field} />
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
+								render={({ field }) => {
+									// Garantir que sempre temos um valor válido
+									const isoDate = field.value || dateToInputValue(new Date());
+									// Converter para formato brasileiro para exibição
+									const displayValue = language === 'pt' 
+										? isoToBrazilianFormat(isoDate)
+										: isoDate;
+									
+									return (
+										<FormItem>
+											<FormLabel>{t(language, 'Date')}</FormLabel>
+											<FormControl>
+												<div className="relative">
+													{language === 'pt' ? (
+														<>
+															<Input 
+																type="text"
+																placeholder="DD/MM/AAAA"
+																value={displayValue}
+																onChange={(e) => {
+																	const input = e.target.value;
+																	// Permitir apenas números e barras
+																	const cleaned = input.replace(/[^\d/]/g, '');
+																	// Aplicar máscara DD/MM/YYYY
+																	let masked = cleaned;
+																	if (cleaned.length > 2 && !cleaned.includes('/')) {
+																		masked = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+																	}
+																	if (masked.length > 5) {
+																		masked = masked.slice(0, 5) + '/' + masked.slice(5, 9);
+																	}
+																	
+																	// Converter para ISO quando tiver formato completo
+																	if (masked.length === 10) {
+																		const iso = brazilianToIsoFormat(masked);
+																		if (iso && iso.match(/^\d{4}-\d{2}-\d{2}$/)) {
+																			field.onChange(iso);
+																		}
+																	} else {
+																		// Atualizar o valor exibido mesmo se incompleto
+																		e.target.value = masked;
+																	}
+																}}
+																onBlur={(e) => {
+																	const input = e.target.value;
+																	if (input.length === 10) {
+																		const iso = brazilianToIsoFormat(input);
+																		if (iso && iso.match(/^\d{4}-\d{2}-\d{2}$/)) {
+																			field.onChange(iso);
+																			field.onBlur();
+																		}
+																	} else if (input.length > 0) {
+																		// Se não estiver completo, resetar para data atual
+																		const today = dateToInputValue(new Date());
+																		field.onChange(today);
+																	}
+																}}
+																name={field.name}
+																ref={field.ref}
+																maxLength={10}
+																className="pr-12"
+															/>
+															<Input
+																type="date"
+																value={isoDate}
+																onChange={(e) => {
+																	field.onChange(e.target.value);
+																}}
+																className="absolute opacity-0 pointer-events-none w-0 h-0"
+																tabIndex={-1}
+																aria-hidden="true"
+															/>
+														</>
+													) : (
+														<Input 
+															type="date" 
+															value={isoDate}
+															onChange={(e) => {
+																field.onChange(e.target.value);
+															}}
+															onBlur={field.onBlur}
+															name={field.name}
+															ref={field.ref}
+															lang="en-US"
+														/>
+													)}
+												</div>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									);
+								}}
 							/>
 
 							<div className="space-y-2">

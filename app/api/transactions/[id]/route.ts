@@ -97,6 +97,21 @@ export async function PUT(
 				});
 			}
 
+			// Processar a data corretamente para evitar problemas de timezone
+			let transactionDate: Date;
+			if (date) {
+				// Se a data vem no formato YYYY-MM-DD, criar como data local
+				const dateMatch = date.match(/^(\d{4})-(\d{2})-(\d{2})/);
+				if (dateMatch) {
+					const [, year, month, day] = dateMatch;
+					transactionDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+				} else {
+					transactionDate = new Date(date);
+				}
+			} else {
+				transactionDate = transaction.date;
+			}
+			
 			// Preparar dados de atualização
 			const updateData: Prisma.TransactionUpdateInput = {
 				title,
@@ -104,7 +119,7 @@ export async function PUT(
 				amount: parseFloat(amount),
 				type,
 				category,
-				date: date ? new Date(date) : transaction.date,
+				date: transactionDate,
 			};
 
 			// Lidar com mudança de conta bancária

@@ -21,6 +21,9 @@ import {
 } from "@/components/ui/select"
 import { useLanguage } from "@/components/LanguageProvider"
 import { Label } from "@/components/ui/label"
+import { useState } from "react"
+import CategoryEditor from "@/components/CategoryEditor"
+import { Settings } from "lucide-react"
 
 
 type Props = {
@@ -29,6 +32,7 @@ type Props = {
 
 export default function UserInfo({ user }: Props) {
 	const { language, setLanguage } = useLanguage()
+	const [isCategoryEditorOpen, setIsCategoryEditorOpen] = useState(false)
 
 	if (!user) { return <h1>User Not Found</h1> }
 
@@ -38,41 +42,55 @@ export default function UserInfo({ user }: Props) {
 		: nameParts[0]?.slice(0, 2).toUpperCase();
 
 	return (
-		<Dialog>
-			<DialogTrigger asChild>
-				<div className="flex items-center justify-center space-y-4 cursor-pointer">
-					<Avatar className="w-10 h-10">
-						<AvatarFallback className="bg-green-400/20 text-green-800">
-							{initials}
-						</AvatarFallback>
-					</Avatar>
-				</div>
-			</DialogTrigger>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>{user?.name}</DialogTitle>
-					<DialogDescription>{user?.email}</DialogDescription>
-				</DialogHeader>
-				<div className="space-y-4">
-					<div className="space-y-2">
-						<Label htmlFor="language-select">
-							{language === 'pt' ? 'Idioma' : 'Language'}
-						</Label>
-						<Select value={language} onValueChange={(value) => setLanguage(value as 'pt' | 'en')}>
-							<SelectTrigger id="language-select" className="w-full">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="pt">Português</SelectItem>
-								<SelectItem value="en">English</SelectItem>
-							</SelectContent>
-						</Select>
+		<>
+			<Dialog>
+				<DialogTrigger asChild>
+					<div className="flex items-center justify-center space-y-4 cursor-pointer">
+						<Avatar className="w-10 h-10">
+							<AvatarFallback className="bg-green-400/20 text-green-800">
+								{initials}
+							</AvatarFallback>
+						</Avatar>
 					</div>
-					<Button className="bg-green-800 hover:bg-green-700 transition-all duration-300 w-full" onClick={() => signOut()}>
-						{language === 'pt' ? 'Sair' : 'Sign Out'}
-					</Button>
-				</div>
-			</DialogContent>
-		</Dialog>
+				</DialogTrigger>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>{user?.name}</DialogTitle>
+						<DialogDescription>{user?.email}</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-4">
+						<div className="space-y-2">
+							<Label htmlFor="language-select">
+								{language === 'pt' ? 'Idioma' : 'Language'}
+							</Label>
+							<Select value={language} onValueChange={(value) => setLanguage(value as 'pt' | 'en')}>
+								<SelectTrigger id="language-select" className="w-full">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="pt">Português</SelectItem>
+									<SelectItem value="en">English</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+						<Button 
+							variant="outline" 
+							className="w-full flex items-center gap-2" 
+							onClick={() => setIsCategoryEditorOpen(true)}
+						>
+							<Settings className="h-4 w-4" />
+							{language === 'pt' ? 'Editar Categorias' : 'Edit Categories'}
+						</Button>
+						<Button className="bg-green-800 hover:bg-green-700 transition-all duration-300 w-full" onClick={() => signOut()}>
+							{language === 'pt' ? 'Sair' : 'Sign Out'}
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
+			<CategoryEditor 
+				isOpen={isCategoryEditorOpen} 
+				onClose={() => setIsCategoryEditorOpen(false)} 
+			/>
+		</>
 	)
 }

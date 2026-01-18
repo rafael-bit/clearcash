@@ -61,6 +61,21 @@ export async function POST(request: Request) {
 	try {
 		const { title, description, amount, type, category, date, bankAccountId, documents } = await request.json();
 		const result = await prisma.$transaction(async (tx) => {
+			// Processar a data corretamente para evitar problemas de timezone
+			let transactionDate: Date;
+			if (date) {
+				// Se a data vem no formato YYYY-MM-DD, criar como data local
+				const dateMatch = date.match(/^(\d{4})-(\d{2})-(\d{2})/);
+				if (dateMatch) {
+					const [, year, month, day] = dateMatch;
+					transactionDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+				} else {
+					transactionDate = new Date(date);
+				}
+			} else {
+				transactionDate = new Date();
+			}
+			
 			const transaction = await tx.transaction.create({
 				data: {
 					title,
@@ -68,7 +83,7 @@ export async function POST(request: Request) {
 					amount: parseFloat(amount),
 					type,
 					category,
-					date: date ? new Date(date) : new Date(),
+					date: transactionDate,
 					user: {
 						connect: {
 							id: session.user?.id as string,
