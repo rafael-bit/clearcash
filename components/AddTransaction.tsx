@@ -39,7 +39,7 @@ import { toast } from 'sonner'
 import { useLanguage } from './LanguageProvider'
 import { t } from '@/lib/translations'
 import { normalizeDocumentUrl } from '@/lib/document-url'
-import { dateToInputValue, formatDate, isoToBrazilianFormat, brazilianToIsoFormat } from '@/lib/utils'
+import { dateToInputValue, isoToBrazilianFormat, brazilianToIsoFormat } from '@/lib/utils'
 
 const formSchema = z.object({
 	title: z.string().min(2, {
@@ -117,39 +117,6 @@ const getDefaultCategoryOptions = (language: 'pt' | 'en'): Record<'INCOME' | 'EX
 	],
 })
 
-const getCategoryOptions = async (language: 'pt' | 'en'): Promise<Record<'INCOME' | 'EXPENSE', Category[]>> => {
-	const defaultCategories = getDefaultCategoryOptions(language);
-	
-	try {
-		const response = await fetch('/api/categories');
-		if (response.ok) {
-			const customCategories = await response.json();
-			const customIncome = customCategories
-				.filter((cat: { type: string }) => cat.type === 'INCOME')
-				.map((cat: { id: string; name: string; nameEn?: string; icon: string }) => ({
-					value: `custom_${cat.id}`,
-					label: language === 'pt' ? cat.name : (cat.nameEn || cat.name),
-					icon: cat.icon,
-				}));
-			const customExpense = customCategories
-				.filter((cat: { type: string }) => cat.type === 'EXPENSE')
-				.map((cat: { id: string; name: string; nameEn?: string; icon: string }) => ({
-					value: `custom_${cat.id}`,
-					label: language === 'pt' ? cat.name : (cat.nameEn || cat.name),
-					icon: cat.icon,
-				}));
-			
-			return {
-				INCOME: [...customIncome, ...defaultCategories.INCOME],
-				EXPENSE: [...customExpense, ...defaultCategories.EXPENSE],
-			};
-		}
-	} catch (error) {
-		console.error('Error fetching custom categories:', error);
-	}
-	
-	return defaultCategories;
-}
 
 const accountTypeOptions: AccountTypeOption[] = [
 	{ value: 'BANK', label: 'Bank Account', icon: '/icons/cardGray.svg' },
@@ -264,10 +231,44 @@ export default function AddTransaction() {
 		}
 	}, [isOpen, accounts, form])
 
+	const loadCategoryOptions = async () => {
+		try {
+			const response = await fetch('/api/categories');
+			if (response.ok) {
+				const customCategories = await response.json();
+				const defaultCategories = getDefaultCategoryOptions(language);
+				
+				const customIncome = customCategories
+					.filter((cat: { type: string }) => cat.type === 'INCOME')
+					.map((cat: { id: string; name: string; nameEn?: string; icon: string }) => ({
+						value: `custom_${cat.id}`,
+						label: language === 'pt' ? cat.name : (cat.nameEn || cat.name),
+						icon: cat.icon,
+					}));
+				const customExpense = customCategories
+					.filter((cat: { type: string }) => cat.type === 'EXPENSE')
+					.map((cat: { id: string; name: string; nameEn?: string; icon: string }) => ({
+						value: `custom_${cat.id}`,
+						label: language === 'pt' ? cat.name : (cat.nameEn || cat.name),
+						icon: cat.icon,
+					}));
+				
+				setCategoryOptions({
+					INCOME: [...customIncome, ...defaultCategories.INCOME],
+					EXPENSE: [...customExpense, ...defaultCategories.EXPENSE],
+				});
+			}
+		} catch (error) {
+			console.error('Error loading custom categories:', error);
+		}
+	};
+
 	useEffect(() => {
 		if (isOpen) {
 			fetchAccounts()
+			loadCategoryOptions()
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isOpen, fetchAccounts])
 
 	// Atualizar a data quando o modal é aberto
