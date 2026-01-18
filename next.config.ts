@@ -14,6 +14,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Prevent static optimization for API routes that use R2
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
 };
 
 export default nextConfig;

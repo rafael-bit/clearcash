@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/services/auth';
 import { uploadFile } from '@/services/r2';
 
+// Force dynamic rendering to prevent build-time execution
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(request: Request) {
 	const session = await auth();
 

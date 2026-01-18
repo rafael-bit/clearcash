@@ -8,6 +8,7 @@ function getS3Client() {
 	const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
 	const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME;
 
+	// Validate environment variables - this will only be called at runtime
 	if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET_NAME) {
 		throw new Error('Missing R2 environment variables');
 	}
@@ -72,7 +73,18 @@ export async function uploadFile(
 		throw new Error(validation.error);
 	}
 
-	const { client: s3Client, bucketName } = getS3Client();
+	let s3Client, bucketName;
+	try {
+		const clientData = getS3Client();
+		s3Client = clientData.client;
+		bucketName = clientData.bucketName;
+	} catch (error) {
+		// Re-throw with a more descriptive error
+		if (error instanceof Error && error.message.includes('Missing R2')) {
+			throw new Error('R2 configuration is missing. Please configure R2 environment variables in your deployment settings.');
+		}
+		throw error;
+	}
 	const fileExtension = fileName.split('.').pop() || '';
 	const fileKey = `documents/${randomUUID()}.${fileExtension}`;
 

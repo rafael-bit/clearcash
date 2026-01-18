@@ -2,12 +2,17 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/services/auth';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 
+// Force dynamic rendering to prevent build-time execution
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 function getS3Client() {
 	const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
 	const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
 	const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
 	const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME;
 
+	// Validate environment variables - this will only be called at runtime
 	if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET_NAME) {
 		throw new Error('Missing R2 environment variables');
 	}
@@ -38,7 +43,22 @@ export async function GET(
 	try {
 		const { path } = await params;
 		const fileKey = path.join('/');
-		const { client: s3Client, bucketName } = getS3Client();
+		
+		let s3Client, bucketName;
+		try {
+			const clientData = getS3Client();
+			s3Client = clientData.client;
+			bucketName = clientData.bucketName;
+		} catch (error) {
+			// Re-throw with a more descriptive error
+			if (error instanceof Error && error.message.includes('Missing R2')) {
+				return NextResponse.json(
+					{ error: 'R2 configuration is missing. Please configure R2 environment variables.' },
+					{ status: 500 }
+				);
+			}
+			throw error;
+		}
 
 		console.log('Fetching file from R2:', { fileKey, bucket: bucketName });
 
