@@ -723,15 +723,13 @@ export default function AddTransaction() {
 				</DialogContent>
 			</Dialog>
 
-			{!showAccountForm && (
-				<Button
-					onClick={() => setIsOpen(true)}
-					className="fixed bottom-5 right-5 bg-teal9 hover:bg-teal-800 transition-all duration-300 rounded-full w-12 h-12 text-white p-3 flex items-center justify-center"
-					size="icon"
-				>
-					<Plus className="h-6 w-6" />
-				</Button>
-			)}
+			<Button
+				onClick={() => setIsOpen(true)}
+				className="fixed bottom-5 right-5 bg-teal9 hover:bg-teal-800 transition-all duration-300 rounded-full w-14 h-14 text-white p-3 flex items-center justify-center shadow-lg z-50"
+				size="icon"
+			>
+				<Plus className="h-6 w-6" />
+			</Button>
 		</>
 	)
 }
