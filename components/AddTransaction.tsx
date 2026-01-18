@@ -127,7 +127,6 @@ export default function AddTransaction() {
 	const {
 		isOpen,
 		setIsOpen,
-		showAccountForm,
 		setShowAccountForm,
 		isAccountModalOpen,
 		setIsAccountModalOpen
