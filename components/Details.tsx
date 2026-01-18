@@ -189,6 +189,7 @@ export default function Details() {
 	useEffect(() => {
 		fetchTransactions();
 		loadCategoryOptions();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [fetchTransactions]);
 
 	const loadCategoryOptions = async () => {

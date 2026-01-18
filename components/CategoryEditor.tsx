@@ -11,15 +11,8 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog';
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { X, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { useLanguage } from './LanguageProvider';
@@ -73,6 +66,7 @@ export default function CategoryEditor({ isOpen, onClose }: CategoryEditorProps)
 		if (isOpen) {
 			fetchCategories();
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isOpen]);
 
 	const fetchCategories = async () => {
