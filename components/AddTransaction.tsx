@@ -610,14 +610,18 @@ export default function AddTransaction() {
 																		masked = masked.slice(0, 5) + '/' + masked.slice(5, 9);
 																	}
 																	
-																	// Atualizar o valor exibido
-																	e.target.value = masked;
-																	
 																	// Converter para ISO quando tiver formato completo
 																	if (masked.length === 10) {
 																		const iso = brazilianToIsoFormat(masked);
 																		if (iso && iso.match(/^\d{4}-\d{2}-\d{2}$/)) {
-																			field.onChange(iso);
+																			// Validar se a data é válida
+																			const [year, month, day] = iso.split('-').map(Number);
+																			const testDate = new Date(year, month - 1, day);
+																			if (testDate.getFullYear() === year && 
+																				testDate.getMonth() === month - 1 && 
+																				testDate.getDate() === day) {
+																				field.onChange(iso);
+																			}
 																		}
 																	}
 																}}
@@ -626,16 +630,24 @@ export default function AddTransaction() {
 																	if (input.length === 10) {
 																		const iso = brazilianToIsoFormat(input);
 																		if (iso && iso.match(/^\d{4}-\d{2}-\d{2}$/)) {
-																			field.onChange(iso);
+																			// Validar se a data é válida
+																			const [year, month, day] = iso.split('-').map(Number);
+																			const testDate = new Date(year, month - 1, day);
+																			if (testDate.getFullYear() === year && 
+																				testDate.getMonth() === month - 1 && 
+																				testDate.getDate() === day) {
+																				field.onChange(iso);
+																			} else {
+																				// Se data inválida, restaurar valor anterior
+																				field.onChange(field.value || dateToInputValue(new Date()));
+																			}
 																		} else {
-																			// Se formato inválido, manter o valor atual do campo
-																			const currentIso = field.value || dateToInputValue(new Date());
-																			field.onChange(currentIso);
+																			// Se formato inválido, restaurar valor anterior
+																			field.onChange(field.value || dateToInputValue(new Date()));
 																		}
 																	} else if (input.length > 0 && input.length < 10) {
-																		// Se não estiver completo, manter o valor atual do campo
-																		const currentIso = field.value || dateToInputValue(new Date());
-																		field.onChange(currentIso);
+																		// Se não estiver completo, restaurar valor anterior
+																		field.onChange(field.value || dateToInputValue(new Date()));
 																	}
 																	field.onBlur();
 																}}
