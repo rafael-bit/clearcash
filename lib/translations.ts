@@ -95,6 +95,9 @@ export const translations = {
 		'Icon': 'Ícone',
 		'No income categories': 'Nenhuma categoria de receita',
 		'No expense categories': 'Nenhuma categoria de despesa',
+		'Sort by date': 'Ordenar por data',
+		'Oldest first': 'Mais antigas primeiro',
+		'Newest first': 'Mais recentes primeiro',
 	},
 	en: {
 		'My accounts': 'My accounts',
@@ -192,6 +195,9 @@ export const translations = {
 		'Icon': 'Icon',
 		'No income categories': 'No income categories',
 		'No expense categories': 'No expense categories',
+		'Sort by date': 'Sort by date',
+		'Oldest first': 'Oldest first',
+		'Newest first': 'Newest first',
 	},
 } as const;
 

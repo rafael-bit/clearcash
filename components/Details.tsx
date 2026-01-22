@@ -130,6 +130,7 @@ export default function Details() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
 	const [filterType, setFilterType] = useState<'transactions' | 'income' | 'expense'>('transactions');
+	const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 	const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 	const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 	const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -179,13 +180,20 @@ export default function Details() {
 				data = data.filter((transaction: Transaction) => transaction.type === 'EXPENSE');
 			}
 
+			// Ordenar por data
+			data.sort((a: Transaction, b: Transaction) => {
+				const dateA = new Date(a.date).getTime();
+				const dateB = new Date(b.date).getTime();
+				return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+			});
+
 			setTransactions(data);
 		} catch (error) {
 			console.error('Error fetching transactions:', error);
 		} finally {
 			setIsLoading(false);
 		}
-	}, [currentMonth, currentYear, selectedAccountId, filterType]);
+	}, [currentMonth, currentYear, selectedAccountId, filterType, sortOrder]);
 
 	useEffect(() => {
 		fetchTransactions();
@@ -635,6 +643,19 @@ export default function Details() {
 							</SelectItem>
 						</SelectContent>
 					</Select>
+					<Select value={sortOrder} onValueChange={(value) => setSortOrder(value as 'asc' | 'desc')}>
+						<SelectTrigger className="w-[180px]">
+							<SelectValue placeholder={t(language, 'Sort by date')} />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="desc">
+								{t(language, 'Newest first')}
+							</SelectItem>
+							<SelectItem value="asc">
+								{t(language, 'Oldest first')}
+							</SelectItem>
+						</SelectContent>
+					</Select>
 					{selectedAccountId && (
 						<Button
 							variant="outline"
@@ -767,12 +788,7 @@ export default function Details() {
 				)}
 			</div>
 
-			<Dialog open={isEditDialogOpen} onOpenChange={(open) => {
-				setIsEditDialogOpen(open);
-				if (!open) {
-					setDateDisplayValue('');
-				}
-			}}>
+			<Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
 				<DialogContent className="max-w-md">
 					<DialogHeader>
 						<DialogTitle>{t(language, 'Edit Transaction')}</DialogTitle>
@@ -1010,7 +1026,6 @@ export default function Details() {
 							<DialogFooter>
 								<Button type="button" variant="outline" onClick={() => {
 									setIsEditDialogOpen(false);
-									setDateDisplayValue('');
 								}}>
 									{t(language, 'Cancel')}
 								</Button>
