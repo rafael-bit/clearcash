@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { FileDown, FileText, Edit, Trash2, Paperclip, X, Upload, Images } from "lucide-react";
+import { FileDown, FileText, Edit, Trash2, Paperclip, X, Upload, Images, Filter } from "lucide-react";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -617,34 +617,70 @@ export default function Details() {
 	return (
 		<section className="rounded-xl bg-gray0 w-full p-7">
 			<div className="flex justify-between items-center mb-7">
-				<div className="flex items-center gap-4">
+				<div className="flex items-center gap-2">
+					<Button variant="outline" onClick={() => setIsImageGalleryOpen(true)}>
+						<Images className="h-5 w-5 mr-2" />
+						{t(language, 'View Images')}
+					</Button>
+
+					<Button variant="outline" onClick={handleGeneratePDF}>
+						<FileText className="h-5 w-5 mr-2" />
+						{t(language, 'Generate PDF')}
+					</Button>
+
+					<Button variant="default" onClick={handleDownload}>
+						<FileDown className="h-5 w-5 mr-2" />
+						{t(language, 'Download CSV')}
+					</Button>
+				</div>
+			</div>
+
+			<div className="w-full relative">
+				<div className="flex justify-between items-center mb-4">
+					<button onClick={handlePreviousMonth} className="h-10 w-10 text-neutral-900 hover:text-neutral-800">
+						<ChevronLeft className="h-6 w-6" />
+					</button>
+					<h2 className="text-lg font-medium">
+						{getCurrentMonthLabel()}
+					</h2>
+					<button onClick={handleNextMonth} className="h-10 w-10 text-neutral-900 hover:text-neutral-800">
+						<ChevronRight className="h-6 w-6" />
+					</button>
+				</div>
+
+				{/* Área de Filtros */}
+				<div className="flex flex-wrap items-center gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
+					<div className="flex items-center gap-2">
+						<Filter className="h-4 w-4 text-gray-600" />
+						<span className="text-sm font-medium text-gray-700">{t(language, 'Filters')}:</span>
+					</div>
 					<Select value={filterType} onValueChange={(value) => setFilterType(value as 'transactions' | 'income' | 'expense')}>
-						<SelectTrigger className="w-[180px]">
+						<SelectTrigger className="w-[160px] h-9">
 							<SelectValue placeholder={t(language, 'Transactions type')} />
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem value="transactions">
 								<div className="flex items-center gap-2">
-									<Image src="/icons/transactions.svg" alt="transactions" width={20} height={20} />
+									<Image src="/icons/transactions.svg" alt="transactions" width={16} height={16} />
 									{t(language, 'Transactions')}
 								</div>
 							</SelectItem>
 							<SelectItem value="income">
 								<div className="flex items-center gap-2">
-									<Image src="/icons/income.svg" alt="income" width={20} height={20} />
+									<Image src="/icons/income.svg" alt="income" width={16} height={16} />
 									{t(language, 'Income')}
 								</div>
 							</SelectItem>
 							<SelectItem value="expense">
 								<div className="flex items-center gap-2">
-									<Image src="/icons/expenses.svg" alt="expense" width={20} height={20} />
+									<Image src="/icons/expenses.svg" alt="expense" width={16} height={16} />
 									{t(language, 'Expenses')}
 								</div>
 							</SelectItem>
 						</SelectContent>
 					</Select>
 					<Select value={sortOrder} onValueChange={(value) => setSortOrder(value as 'asc' | 'desc')}>
-						<SelectTrigger className="w-[180px]">
+						<SelectTrigger className="w-[160px] h-9">
 							<SelectValue placeholder={t(language, 'Sort by date')} />
 						</SelectTrigger>
 						<SelectContent>
@@ -661,43 +697,11 @@ export default function Details() {
 							variant="outline"
 							size="sm"
 							onClick={() => setSelectedAccountId(null)}
-							className="text-xs h-7"
+							className="text-xs h-9"
 						>
 							{t(language, 'Clear Account Filter')}
 						</Button>
 					)}
-				</div>
-				<div className="flex items-center gap-2">
-					<div className="flex gap-4">
-						<Button variant="outline" onClick={() => setIsImageGalleryOpen(true)}>
-							<Images className="h-5 w-5 mr-2" />
-							{t(language, 'View Images')}
-						</Button>
-
-						<Button variant="outline" onClick={handleGeneratePDF}>
-							<FileText className="h-5 w-5 mr-2" />
-							{t(language, 'Generate PDF')}
-						</Button>
-
-						<Button variant="default" onClick={handleDownload}>
-							<FileDown className="h-5 w-5 mr-2" />
-							{t(language, 'Download CSV')}
-						</Button>
-					</div>
-				</div>
-			</div>
-
-			<div className="w-full relative">
-				<div className="flex justify-between items-center mb-4">
-					<button onClick={handlePreviousMonth} className="h-10 w-10 text-neutral-900 hover:text-neutral-800">
-						<ChevronLeft className="h-6 w-6" />
-					</button>
-					<h2 className="text-lg font-medium">
-						{getCurrentMonthLabel()}
-					</h2>
-					<button onClick={handleNextMonth} className="h-10 w-10 text-neutral-900 hover:text-neutral-800">
-						<ChevronRight className="h-6 w-6" />
-					</button>
 				</div>
 
 				{isLoading ? (

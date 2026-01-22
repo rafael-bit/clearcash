@@ -98,6 +98,7 @@ export const translations = {
 		'Sort by date': 'Ordenar por data',
 		'Oldest first': 'Mais antigas primeiro',
 		'Newest first': 'Mais recentes primeiro',
+		'Filters': 'Filtros',
 	},
 	en: {
 		'My accounts': 'My accounts',
@@ -198,6 +199,7 @@ export const translations = {
 		'Sort by date': 'Sort by date',
 		'Oldest first': 'Oldest first',
 		'Newest first': 'Newest first',
+		'Filters': 'Filters',
 	},
 } as const;
 
