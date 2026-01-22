@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -39,7 +39,7 @@ import { toast } from 'sonner'
 import { useLanguage } from './LanguageProvider'
 import { t } from '@/lib/translations'
 import { normalizeDocumentUrl } from '@/lib/document-url'
-import { dateToInputValue, isoToBrazilianFormat, brazilianToIsoFormat } from '@/lib/utils'
+import { dateToInputValue, isoToBrazilianFormat } from '@/lib/utils'
 
 const formSchema = z.object({
 	title: z.string().min(2, {
@@ -143,6 +143,7 @@ export default function AddTransaction() {
 		INCOME: getDefaultCategoryOptions(language).INCOME,
 		EXPENSE: getDefaultCategoryOptions(language).EXPENSE,
 	})
+	const dateInputRef = useRef<HTMLInputElement>(null)
 
 	// Inicializar a data atual uma vez
 	const getInitialDate = () => dateToInputValue(new Date());
@@ -358,13 +359,14 @@ export default function AddTransaction() {
 				? selectedAccountId
 				: accounts.length > 0 ? accounts[0].id : ''
 			
+			const today = dateToInputValue(new Date());
 			form.reset({
 				title: '',
 				amount: '',
 				type: 'EXPENSE',
 				category: '',
 				bankAccountId: accountToUse,
-				date: dateToInputValue(new Date()),
+				date: today,
 			});
 			setDocuments([]);
 			setIsOpen(false);
@@ -581,106 +583,54 @@ export default function AddTransaction() {
 								render={({ field }) => {
 									// Garantir que sempre temos um valor válido
 									const isoDate = field.value || dateToInputValue(new Date());
-									// Converter para formato brasileiro para exibição
-									const displayValue = language === 'pt' 
-										? isoToBrazilianFormat(isoDate)
-										: isoDate;
+									const displayValue = language === 'pt' ? isoToBrazilianFormat(isoDate) : isoDate;
 									
 									return (
 										<FormItem>
 											<FormLabel>{t(language, 'Date')}</FormLabel>
 											<FormControl>
-												<div className="relative">
-													{language === 'pt' ? (
-														<>
-															<Input 
-																type="text"
-																placeholder="DD/MM/AAAA"
-																value={displayValue}
-																onChange={(e) => {
-																	const input = e.target.value;
-																	// Permitir apenas números e barras
-																	const cleaned = input.replace(/[^\d/]/g, '');
-																	// Aplicar máscara DD/MM/YYYY
-																	let masked = cleaned;
-																	if (cleaned.length > 2 && !cleaned.includes('/')) {
-																		masked = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
-																	}
-																	if (masked.length > 5) {
-																		masked = masked.slice(0, 5) + '/' + masked.slice(5, 9);
-																	}
-																	
-																	// Converter para ISO quando tiver formato completo
-																	if (masked.length === 10) {
-																		const iso = brazilianToIsoFormat(masked);
-																		if (iso && iso.match(/^\d{4}-\d{2}-\d{2}$/)) {
-																			// Validar se a data é válida
-																			const [year, month, day] = iso.split('-').map(Number);
-																			const testDate = new Date(year, month - 1, day);
-																			if (testDate.getFullYear() === year && 
-																				testDate.getMonth() === month - 1 && 
-																				testDate.getDate() === day) {
-																				field.onChange(iso);
-																			}
-																		}
-																	}
-																}}
-																onBlur={(e) => {
-																	const input = e.target.value;
-																	if (input.length === 10) {
-																		const iso = brazilianToIsoFormat(input);
-																		if (iso && iso.match(/^\d{4}-\d{2}-\d{2}$/)) {
-																			// Validar se a data é válida
-																			const [year, month, day] = iso.split('-').map(Number);
-																			const testDate = new Date(year, month - 1, day);
-																			if (testDate.getFullYear() === year && 
-																				testDate.getMonth() === month - 1 && 
-																				testDate.getDate() === day) {
-																				field.onChange(iso);
-																			} else {
-																				// Se data inválida, restaurar valor anterior
-																				field.onChange(field.value || dateToInputValue(new Date()));
-																			}
-																		} else {
-																			// Se formato inválido, restaurar valor anterior
-																			field.onChange(field.value || dateToInputValue(new Date()));
-																		}
-																	} else if (input.length > 0 && input.length < 10) {
-																		// Se não estiver completo, restaurar valor anterior
-																		field.onChange(field.value || dateToInputValue(new Date()));
-																	}
-																	field.onBlur();
-																}}
-																name={field.name}
-																ref={field.ref}
-																maxLength={10}
-																className="pr-12"
-															/>
-															<Input
-																type="date"
-																value={isoDate}
-																onChange={(e) => {
-																	field.onChange(e.target.value);
-																}}
-																className="absolute opacity-0 pointer-events-none w-0 h-0"
-																tabIndex={-1}
-																aria-hidden="true"
-															/>
-														</>
-													) : (
+												{language === 'pt' ? (
+													<div className="relative">
 														<Input 
-															type="date" 
+															type="text"
+															placeholder="DD/MM/AAAA"
+															value={displayValue}
+															readOnly
+															onClick={() => {
+																dateInputRef.current?.showPicker?.();
+															}}
+															className="cursor-pointer"
+														/>
+														<Input
+															type="date"
+															ref={(e) => {
+																field.ref(e);
+																dateInputRef.current = e;
+															}}
 															value={isoDate}
 															onChange={(e) => {
 																field.onChange(e.target.value);
 															}}
 															onBlur={field.onBlur}
 															name={field.name}
-															ref={field.ref}
-															lang="en-US"
+															className="absolute opacity-0 pointer-events-none w-0 h-0"
+															tabIndex={-1}
+															aria-hidden="true"
 														/>
-													)}
-												</div>
+													</div>
+												) : (
+													<Input 
+														type="date" 
+														value={isoDate}
+														onChange={(e) => {
+															field.onChange(e.target.value);
+														}}
+														onBlur={field.onBlur}
+														name={field.name}
+														ref={field.ref}
+														lang="en-US"
+													/>
+												)}
 											</FormControl>
 											<FormMessage />
 										</FormItem>
